@@ -1,0 +1,5 @@
+{
+  "name": "AI-Powered Energy Consumption Optimizer (AI-PECO)",
+  "description": "A web-based intelligent energy management system to monitor, analyze, predict, and optimize electricity consumption. It features a real-time dashboard, AI-driven forecasts, and an intelligent analysis mode powered by Gemini.",
+  "requestFramePermissions": []
+}
