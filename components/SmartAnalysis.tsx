@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { runSmartAnalysis } from '../services/geminiService';
 import { DataPoint } from '../types';
 import { SparklesIcon } from './Icons';
 
@@ -14,6 +13,49 @@ const SmartAnalysis: React.FC<SmartAnalysisProps> = ({ consumptionHistory }) => 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const summarizeHistory = (history: DataPoint[]) => {
+    const recent = history.slice(-24);
+    const total = recent.reduce((sum, point) => sum + point.power, 0);
+    const average = recent.length ? total / recent.length : 0;
+
+    const peak = recent.reduce(
+      (acc, point) => (point.power > acc.power ? point : acc),
+      { power: 0, time: '' } as Pick<DataPoint, 'power' | 'time'>
+    );
+
+    const lowest = recent.reduce(
+      (acc, point) => (acc.power === 0 || point.power < acc.power ? point : acc),
+      { power: 0, time: '' } as Pick<DataPoint, 'power' | 'time'>
+    );
+
+    return { total, average, peak, lowest };
+  };
+
+  const buildResponse = (question: string, history: DataPoint[]) => {
+    if (!history.length) {
+      return 'No live data yet, so I cannot crunch the numbers. Keep the dashboard open for a few minutes and try again.';
+    }
+
+    const { total, average, peak, lowest } = summarizeHistory(history);
+    const dailyKwh = (total / 4).toFixed(2); // 15-minute intervals
+    const avgKw = average.toFixed(2);
+
+    const bulletIntro = question.toLowerCase().includes('why') ? 'Here is what I noticed:' : 'Quick snapshot:';
+
+    return [
+      `### ${bulletIntro}`,
+      `- **Daily load:** ~${dailyKwh} kWh in the last 24h.`,
+      `- **Typical draw:** ${avgKw} kW, so anything higher stands out quickly.`,
+      `- **Peak:** ${peak.power.toFixed(2)} kW around ${peak.time}.`,
+      `- **Valley:** ${lowest.power.toFixed(2)} kW around ${lowest.time}.`,
+      '',
+      'Ideas to try next:',
+      '* Shift one heavy device out of the peak window shown above.',
+      '* Audit idle devices that never drop below 0.5 kW—they often hide in plain sight.',
+      '* Pair the Device view with this analysis to confirm which circuit is spiking.',
+    ].join('\n');
+  };
+
   const handleAnalysis = async () => {
     if (!query.trim()) {
       setError('Please enter a query.');
@@ -22,14 +64,10 @@ const SmartAnalysis: React.FC<SmartAnalysisProps> = ({ consumptionHistory }) => 
     setIsLoading(true);
     setError('');
     setResponse('');
-    try {
-      const result = await runSmartAnalysis(query, consumptionHistory);
-      setResponse(result);
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
-    } finally {
-      setIsLoading(false);
-    }
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const result = buildResponse(query, consumptionHistory);
+    setResponse(result);
+    setIsLoading(false);
   };
 
   const renderResponse = (text: string) => {

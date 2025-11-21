@@ -1,30 +1,33 @@
-<div align="center">
-  <img width="1200" height="475" alt="AI-PECO Banner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
 # AI-PECO · AI-Powered Energy Consumption Optimizer
 
-AI-PECO is a Vite + React dashboard that helps households and small facilities understand how their devices draw power in real time. It combines live telemetry, forecast modeling, and a Gemini-powered assistant to surface anomalies, cost trends, and actionable recommendations with a tone that feels human—not robotic.
+AI-PECO is a Vite + React dashboard that helps households and small facilities understand how their devices draw power in real time. It combines live telemetry, forecast modeling, and a handcrafted assistant layer to surface anomalies, cost trends, and actionable recommendations with a tone that feels human—not robotic.
 
-> **Demo:** https://ai.studio/apps/drive/1lMtIVZ4wAAHFEblJv8BNdZoAD7obCHAY
 
 ---
 
 ## ✨ Highlights
 
-- Live and historical energy charts with forecast overlays
+- Live + historical energy timelines with forecast overlays
 - Device-by-device diagnostics, statuses, and remote toggles
-- AI recommendation feed with contextual savings tips
-- Friendly chatbot that understands Markdown responses via Gemini
-- Dark/light theming and fully responsive layout
+- AI-style recommendation feed with contextual savings tips
+- Friendly chatbot that speaks Markdown and references the latest conversation history
+- Dark/light theming, keyboard-friendly navigation, and a responsive layout that feels natural on any screen
 
 ---
 
 ## 🧱 Tech Stack
 
 - **Frontend:** React 18, TypeScript, TailwindCSS, Recharts, Vite
-- **AI:** Google Gemini (chat + analysis endpoints)
+- **Logic:** Custom heuristic chatbot + analysis engine (no hosted AI dependency)
 - **Tooling:** ESLint, npm scripts, Vite build pipeline
+
+---
+
+## 🧠 How It Works
+
+- **Mock data loop** — `hooks/useMockData.ts` simulates live draws, forecasts, device statuses, and anomalies so the UI feels alive without wiring up hardware yet.
+- **Insight layer** — `hooks/useChatAssistant.ts` and `components/SmartAnalysis.tsx` translate raw numbers into conversational guidance. The logic is deterministic and owned by this repo—no external AI calls.
+- **UI composition** — `App.tsx` swaps between views (`Dashboard`, `Chatbot`, `Devices`, `Reports`, `Settings`) while `Sidebar` + `Header` keep navigation predictable.
 
 ---
 
@@ -41,17 +44,7 @@ AI-PECO is a Vite + React dashboard that helps households and small facilities u
 npm install
 ```
 
-### 3. Configure environment variables
-
-Create `.env.local` (never commit this file) and add your Gemini key:
-
-```
-GEMINI_API_KEY=your-key-here
-```
-
-> The project reads `process.env.GEMINI_API_KEY` inside `services/geminiService.ts`. Without it, smart analysis and the chatbot fall back to friendly error messages.
-
-### 4. Run the development server
+### 3. Run the development server
 
 ```bash
 npm run dev
@@ -71,6 +64,14 @@ Visit `http://localhost:5173` (or the port Vite prints) to explore the dashboard
 
 ---
 
+## 🧪 Testing & Quality
+
+- `npm run build` to ensure the TypeScript + bundler pipeline succeeds.
+- Use your browser devtools or Lighthouse against `npm run preview` for performance and accessibility budgets.
+- The project ships with TypeScript types across components and hooks, so favor type-safe additions over `any`.
+
+---
+
 ## 🗂 Project Layout
 
 ```
@@ -78,11 +79,19 @@ AIPECO/
 ├── components/          # Reusable UI building blocks
 ├── contexts/            # Theme + global providers
 ├── hooks/               # Custom hooks (mock data, chat, notifications)
-├── services/            # Gemini client + analysis helpers
+├── services/            # Reserved for future API adapters (currently empty)
 ├── App.tsx              # Root layout and view switching
 ├── types.ts             # Shared TypeScript contracts
 └── vite.config.ts
 ```
+
+---
+
+## 🔧 Customization Tips
+
+- **Data fidelity**: swap `useMockData` with real telemetry by hooking your API inside the hook; the rest of the app already expects the same shape.
+- **Chat voice**: update the `ENERGY_TIPS` array and rules in `useChatAssistant` to match your brand voice or domain expertise.
+- **Smart analysis**: extend `buildResponse` in `SmartAnalysis` with richer heuristics or plug in a local ML model if you want deeper insights.
 
 ---
 
