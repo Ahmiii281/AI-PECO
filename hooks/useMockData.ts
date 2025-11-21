@@ -9,60 +9,133 @@ const mockRecommendations: Recommendation[] = [
 ];
 
 const initialMockDevices: Device[] = [
-    { 
-      id: 'ac-1', 
-      name: 'Living Room AC', 
-      status: DeviceStatus.Online, 
-      power: 1800, 
-      isAdjustable: true, 
-      maxPower: 3500,
-      normalPowerRange: [1500, 2200],
-      tips: [
-        "Set thermostat to 24°C instead of 22°C.",
-        "Clean filters monthly for max efficiency.",
-        "Use a fan to help circulate cool air.",
-      ]
-    },
-    { 
-      id: 'fridge-1', 
-      name: 'Kitchen Refrigerator', 
-      status: DeviceStatus.Online, 
-      power: 250, 
-      isAdjustable: false,
-      normalPowerRange: [150, 300],
-      tips: [
-        "Ensure door seals are tight and clean.",
-        "Don't put hot food directly inside.",
-        "Keep it relatively full to maintain cold temps.",
-      ]
-    },
-    { 
-      id: 'light-1', 
-      name: 'Office Lights', 
-      status: DeviceStatus.Idle, 
-      power: 10, 
-      isAdjustable: true, 
-      maxPower: 150,
-      normalPowerRange: [80, 120],
-      tips: [
-        "Switch to energy-efficient LED bulbs.",
-        "Use task lighting instead of lighting the whole room.",
-        "Turn off lights when you leave the room.",
-      ]
-    },
-    { 
-      id: 'pc-1', 
-      name: 'Main Computer', 
-      status: DeviceStatus.Offline, 
-      power: 0, 
-      isAdjustable: false,
-      normalPowerRange: [200, 450],
-      tips: [
-        "Use 'Sleep' or 'Hibernate' mode when not in use.",
-        "Disable unnecessary startup programs.",
-        "Adjust power settings to a 'Power Saver' plan.",
-      ]
-    },
+  { 
+    id: 'ac-1', 
+    name: 'Living Room AC', 
+    status: DeviceStatus.Online, 
+    power: 1800, 
+    isAdjustable: true, 
+    maxPower: 3500,
+    normalPowerRange: [1500, 2200],
+    tips: [
+      "Set thermostat to 24°C instead of 22°C.",
+      "Clean filters monthly for max efficiency.",
+      "Use a fan to help circulate cool air.",
+    ]
+  },
+  { 
+    id: 'fridge-1', 
+    name: 'Kitchen Refrigerator', 
+    status: DeviceStatus.Online, 
+    power: 250, 
+    isAdjustable: false,
+    normalPowerRange: [150, 300],
+    tips: [
+      "Ensure door seals are tight and clean.",
+      "Don't put hot food directly inside.",
+      "Keep it relatively full to maintain cold temps.",
+    ]
+  },
+  { 
+    id: 'light-1', 
+    name: 'Office Lights', 
+    status: DeviceStatus.Idle, 
+    power: 10, 
+    isAdjustable: true, 
+    maxPower: 150,
+    normalPowerRange: [80, 120],
+    tips: [
+      "Switch to energy-efficient LED bulbs.",
+      "Use task lighting instead of lighting the whole room.",
+      "Turn off lights when you leave the room.",
+    ]
+  },
+  { 
+    id: 'pc-1', 
+    name: 'Main Computer', 
+    status: DeviceStatus.Offline, 
+    power: 0, 
+    isAdjustable: false,
+    normalPowerRange: [200, 450],
+    tips: [
+      "Use 'Sleep' or 'Hibernate' mode when not in use.",
+      "Disable unnecessary startup programs.",
+      "Adjust power settings to a 'Power Saver' plan.",
+    ]
+  },
+  {
+    id: 'fan-1',
+    name: 'Bedroom Ceiling Fan',
+    status: DeviceStatus.Idle,
+    power: 25,
+    isAdjustable: true,
+    maxPower: 90,
+    normalPowerRange: [25, 75],
+    tips: [
+      "Use medium speed overnight to keep draw low.",
+      "Keep blades clean to reduce drag."
+    ]
+  },
+  {
+    id: 'washer-1',
+    name: 'Laundry Washer',
+    status: DeviceStatus.Offline,
+    power: 0,
+    isAdjustable: false,
+    normalPowerRange: [500, 1500],
+    tips: [
+      "Run full loads on eco mode whenever possible.",
+      "Schedule cycles during off-peak windows."
+    ]
+  },
+  {
+    id: 'heater-1',
+    name: 'Water Heater',
+    status: DeviceStatus.Online,
+    power: 1300,
+    isAdjustable: false,
+    normalPowerRange: [900, 2400],
+    tips: [
+      "Lower the thermostat a degree or two in summer.",
+      "Flush the tank quarterly to remove sediment."
+    ]
+  },
+  {
+    id: 'tv-1',
+    name: 'Living Room TV',
+    status: DeviceStatus.Online,
+    power: 180,
+    isAdjustable: false,
+    normalPowerRange: [120, 220],
+    tips: [
+      "Enable auto-brightness to reduce peaks.",
+      "Turn off connected consoles when idle."
+    ]
+  },
+  {
+    id: 'router-1',
+    name: 'Wi-Fi Router',
+    status: DeviceStatus.Online,
+    power: 20,
+    isAdjustable: false,
+    normalPowerRange: [10, 25],
+    tips: [
+      "Place the router in an open space for cooling.",
+      "Schedule restarts weekly for stability."
+    ]
+  },
+  {
+    id: 'microwave-1',
+    name: 'Kitchen Microwave',
+    status: DeviceStatus.Offline,
+    power: 0,
+    isAdjustable: false,
+    normalPowerRange: [800, 1500],
+    tips: [
+      "Unplug when not in use to avoid phantom draw.",
+      "Use appropriate power levels rather than max."
+    ]
+  },
 ];
 
 

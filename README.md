@@ -11,6 +11,7 @@ AI-PECO is a Vite + React dashboard that helps households and small facilities u
 - Device-by-device diagnostics, statuses, and remote toggles
 - AI-style recommendation feed with contextual savings tips
 - Friendly chatbot that speaks Markdown and references the latest conversation history
+- Add/remove household devices to mirror your real setup (fans, heaters, routers, etc.)
 - Dark/light theming, keyboard-friendly navigation, and a responsive layout that feels natural on any screen
 
 ---

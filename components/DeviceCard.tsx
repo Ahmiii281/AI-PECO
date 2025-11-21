@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Device, DeviceStatus } from '../types';
-import { ChipIcon, LightBulbIcon, CheckCircleIcon, ExclamationCircleIcon } from './Icons';
+import { ChipIcon, LightBulbIcon, CheckCircleIcon, ExclamationCircleIcon, TrashIcon } from './Icons';
 
 interface DeviceCardProps {
   device: Device;
   onToggle: (id: string) => void;
   onPowerChange: (id:string, power: number) => void;
+  onDelete: (id: string) => void;
 }
 
 const statusStyles: Record<DeviceStatus, { dot: string; text: string }> = {
@@ -14,9 +15,9 @@ const statusStyles: Record<DeviceStatus, { dot: string; text: string }> = {
   [DeviceStatus.Idle]: { dot: 'bg-yellow-500', text: 'text-yellow-500 dark:text-yellow-400' },
 };
 
-const DeviceCard: React.FC<DeviceCardProps> = ({ device, onToggle, onPowerChange }) => {
+const DeviceCard: React.FC<DeviceCardProps> = ({ device, onToggle, onPowerChange, onDelete }) => {
   const [isTipsVisible, setIsTipsVisible] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationType, setConfirmationType] = useState<'power' | 'delete' | null>(null);
   const isOnline = device.status !== DeviceStatus.Offline;
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,21 +26,25 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onToggle, onPowerChange
   
   const handleToggleChange = () => {
     if (isOnline) {
-      // If device is on, show confirmation to turn off
-      setShowConfirmation(true);
+      setConfirmationType('power');
     } else {
-      // If device is off, turn on immediately
       onToggle(device.id);
     }
   };
 
-  const handleConfirmTurnOff = () => {
-    onToggle(device.id);
-    setShowConfirmation(false);
+  const requestDelete = () => {
+    setConfirmationType('delete');
   };
-  
-  const handleCancelTurnOff = () => {
-    setShowConfirmation(false);
+
+  const closeConfirmation = () => setConfirmationType(null);
+
+  const handleConfirmAction = () => {
+    if (confirmationType === 'power') {
+      onToggle(device.id);
+    } else if (confirmationType === 'delete') {
+      onDelete(device.id);
+    }
+    setConfirmationType(null);
   };
 
   const anomalyInfo = useMemo(() => {
@@ -87,16 +92,25 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onToggle, onPowerChange
               )}
             </div>
           </div>
-          <label htmlFor={`toggle-${device.id}`} className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              id={`toggle-${device.id}`}
-              className="sr-only peer"
-              checked={isOnline}
-              onChange={handleToggleChange}
-            />
-            <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-          </label>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={requestDelete}
+              className="text-gray-400 hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-full p-1"
+              aria-label={`Remove ${device.name}`}
+            >
+              <TrashIcon />
+            </button>
+            <label htmlFor={`toggle-${device.id}`} className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                id={`toggle-${device.id}`}
+                className="sr-only peer"
+                checked={isOnline}
+                onChange={handleToggleChange}
+              />
+              <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
+          </div>
         </div>
 
         {/* Power Info */}
@@ -154,10 +168,10 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onToggle, onPowerChange
           </div>
         )}
       </div>
-      {showConfirmation && (
+      {confirmationType && (
         <div
             className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
-            onClick={handleCancelTurnOff}
+            onClick={closeConfirmation}
             aria-modal="true"
             role="dialog"
         >
@@ -165,22 +179,26 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onToggle, onPowerChange
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 m-4 max-w-sm w-full animate-fade-in-scale"
                 onClick={(e) => e.stopPropagation()}
             >
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Confirm Action</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {confirmationType === 'power' ? 'Confirm Action' : 'Remove Device'}
+                </h3>
                 <p className="mt-2 text-gray-600 dark:text-gray-300">
-                    Are you sure you want to turn off the <strong>{device.name}</strong>?
+                    {confirmationType === 'power'
+                      ? <>Are you sure you want to turn off the <strong>{device.name}</strong>?</>
+                      : <>Remove <strong>{device.name}</strong> from your home setup? You can always add it again later.</>}
                 </p>
                 <div className="mt-6 flex justify-end space-x-3">
                     <button
-                        onClick={handleCancelTurnOff}
+                        onClick={closeConfirmation}
                         className="px-4 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
                     >
                         Cancel
                     </button>
                     <button
-                        onClick={handleConfirmTurnOff}
-                        className="px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800"
+                        onClick={handleConfirmAction}
+                        className={`px-4 py-2 rounded-md text-sm font-medium text-white ${confirmationType === 'delete' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-600 hover:bg-red-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800`}
                     >
-                        Turn Off
+                        {confirmationType === 'power' ? 'Turn Off' : 'Remove'}
                     </button>
                 </div>
             </div>
