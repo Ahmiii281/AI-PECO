@@ -29,8 +29,8 @@ const ChatView: React.FC = () => {
     return (
         <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-800">
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 sticky top-0 z-10">
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">AI Chatbot</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Your personal energy assistant</p>
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Energy Assistant</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Ask questions about your energy usage</p>
             </div>
             <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
                 {messages.map((msg) => (
@@ -67,7 +67,7 @@ const ChatView: React.FC = () => {
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="Ask PECO-Bot a question..."
+                        placeholder="Type your question here..."
                         className="flex-grow bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full px-5 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:outline-none transition-shadow"
                         disabled={isLoading}
                         aria-label="Chat input"

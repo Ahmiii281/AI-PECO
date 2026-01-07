@@ -13,58 +13,58 @@ const SmartAnalysis: React.FC<SmartAnalysisProps> = ({ consumptionHistory }) => 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const summarizeHistory = (history: DataPoint[]) => {
-    const recent = history.slice(-24);
-    const total = recent.reduce((sum, point) => sum + point.power, 0);
-    const average = recent.length ? total / recent.length : 0;
+  const calculateStats = (dataPoints: DataPoint[]) => {
+    const last24Points = dataPoints.slice(-24);
+    const sumPower = last24Points.reduce((total, point) => total + point.power, 0);
+    const avgPower = last24Points.length > 0 ? sumPower / last24Points.length : 0;
 
-    const peak = recent.reduce(
-      (acc, point) => (point.power > acc.power ? point : acc),
+    const highestPoint = last24Points.reduce(
+      (max, point) => (point.power > max.power ? point : max),
       { power: 0, time: '' } as Pick<DataPoint, 'power' | 'time'>
     );
 
-    const lowest = recent.reduce(
-      (acc, point) => (acc.power === 0 || point.power < acc.power ? point : acc),
+    const lowestPoint = last24Points.reduce(
+      (min, point) => (min.power === 0 || point.power < min.power ? point : min),
       { power: 0, time: '' } as Pick<DataPoint, 'power' | 'time'>
     );
 
-    return { total, average, peak, lowest };
+    return { total: sumPower, average: avgPower, peak: highestPoint, lowest: lowestPoint };
   };
 
   const buildResponse = (question: string, history: DataPoint[]) => {
     if (!history.length) {
-      return 'No live data yet, so I cannot crunch the numbers. Keep the dashboard open for a few minutes and try again.';
+      return 'There is no data available yet. Please wait a few minutes for data to be collected and try again.';
     }
 
-    const { total, average, peak, lowest } = summarizeHistory(history);
-    const dailyKwh = (total / 4).toFixed(2); // 15-minute intervals
+    const { total, average, peak, lowest } = calculateStats(history);
+    const dailyKwh = (total / 4).toFixed(2);
     const avgKw = average.toFixed(2);
 
-    const bulletIntro = question.toLowerCase().includes('why') ? 'Here is what I noticed:' : 'Quick snapshot:';
+    const introText = question.toLowerCase().includes('why') ? 'Here is what I found:' : 'Summary:';
 
     return [
-      `### ${bulletIntro}`,
-      `- **Daily load:** ~${dailyKwh} kWh in the last 24h.`,
-      `- **Typical draw:** ${avgKw} kW, so anything higher stands out quickly.`,
-      `- **Peak:** ${peak.power.toFixed(2)} kW around ${peak.time}.`,
-      `- **Valley:** ${lowest.power.toFixed(2)} kW around ${lowest.time}.`,
+      `### ${introText}`,
+      `- **Daily consumption:** Approximately ${dailyKwh} kWh in the last 24 hours.`,
+      `- **Average power:** ${avgKw} kW. Values above this indicate high usage.`,
+      `- **Highest usage:** ${peak.power.toFixed(2)} kW at ${peak.time}.`,
+      `- **Lowest usage:** ${lowest.power.toFixed(2)} kW at ${lowest.time}.`,
       '',
-      'Ideas to try next:',
-      '* Shift one heavy device out of the peak window shown above.',
-      '* Audit idle devices that never drop below 0.5 kW—they often hide in plain sight.',
-      '* Pair the Device view with this analysis to confirm which circuit is spiking.',
+      'Recommendations:',
+      '* Move one high-power device to a different time to avoid the peak period.',
+      '* Check devices that stay above 0.5 kW even when idle - they may be wasting power.',
+      '* Use the Devices page to see which specific device is causing high consumption.',
     ].join('\n');
   };
 
   const handleAnalysis = async () => {
     if (!query.trim()) {
-      setError('Please enter a query.');
+      setError('Please enter a question.');
       return;
     }
     setIsLoading(true);
     setError('');
     setResponse('');
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 800));
     const result = buildResponse(query, consumptionHistory);
     setResponse(result);
     setIsLoading(false);
@@ -88,7 +88,7 @@ const SmartAnalysis: React.FC<SmartAnalysisProps> = ({ consumptionHistory }) => 
         <SparklesIcon />
         <h3 className="text-xl font-semibold ml-2 text-gray-900 dark:text-white">Smart Analysis (Thinking Mode)</h3>
       </div>
-      <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Ask complex questions about your energy usage. Our AI will provide a detailed analysis.</p>
+      <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Ask questions about your energy consumption patterns and get detailed insights.</p>
       
       <div className="flex flex-col md:flex-row gap-2">
         <input

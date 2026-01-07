@@ -139,197 +139,213 @@ const initialMockDevices: Device[] = [
 ];
 
 
-const generateFullHistoricalData = () => {
-  const perDeviceData: PerDeviceHistoricalData = {};
-  const anomalies: Anomaly[] = [];
-  const now = new Date();
+const buildHistoricalRecords = () => {
+  const deviceHistoryMap: PerDeviceHistoricalData = {};
+  const unusualEvents: Anomaly[] = [];
+  const currentDate = new Date();
 
   initialMockDevices.forEach(device => {
-    const deviceHistory: DataPoint[] = [];
+    const historyPoints: DataPoint[] = [];
     if (!device.normalPowerRange) return;
 
-    for (let i = 30 * 24 - 1; i >= 0; i--) { // 30 days of hourly data
-      const date = new Date(now.getTime() - i * 60 * 60 * 1000);
-      const [min, max] = device.normalPowerRange;
-      let power = min + Math.random() * (max - min);
+    for (let dayIndex = 30 * 24 - 1; dayIndex >= 0; dayIndex--) {
+      const recordDate = new Date(currentDate.getTime() - dayIndex * 60 * 60 * 1000);
+      const [minPower, maxPower] = device.normalPowerRange;
+      let recordPower = minPower + Math.random() * (maxPower - minPower);
 
-      // Inject anomalies ~5% of the time
       if (Math.random() < 0.05) {
-        const isHigh = Math.random() > 0.5;
-        if (isHigh) {
-          power = max * (1.2 + Math.random() * 0.5); // 20% to 70% higher
-          anomalies.push({
-            id: `${device.id}-${date.getTime()}`,
+        const isAboveNormal = Math.random() > 0.5;
+        if (isAboveNormal) {
+          recordPower = maxPower * (1.2 + Math.random() * 0.5);
+          unusualEvents.push({
+            id: `${device.id}-${recordDate.getTime()}`,
             deviceId: device.id,
             deviceName: device.name,
             type: 'high',
-            timestamp: date,
-            duration: 15 + Math.floor(Math.random() * 45), // 15-60 mins
-            value: parseFloat(power.toFixed(0)),
-            normalRange: [min, max],
+            timestamp: recordDate,
+            duration: 15 + Math.floor(Math.random() * 45),
+            value: parseFloat(recordPower.toFixed(0)),
+            normalRange: [minPower, maxPower],
           });
         } else {
-          power = min * (0.8 - Math.random() * 0.5);
-          if (power > 20) { // Only log if not effectively idle/off
-            anomalies.push({
-              id: `${device.id}-${date.getTime()}`,
+          recordPower = minPower * (0.8 - Math.random() * 0.5);
+          if (recordPower > 20) {
+            unusualEvents.push({
+              id: `${device.id}-${recordDate.getTime()}`,
               deviceId: device.id,
               deviceName: device.name,
               type: 'low',
-              timestamp: date,
+              timestamp: recordDate,
               duration: 15 + Math.floor(Math.random() * 45),
-              value: parseFloat(power.toFixed(0)),
-              normalRange: [min, max],
+              value: parseFloat(recordPower.toFixed(0)),
+              normalRange: [minPower, maxPower],
             });
           }
         }
       }
       
-      deviceHistory.push({
-        date,
-        time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        power: parseFloat(power.toFixed(2)),
+      historyPoints.push({
+        date: recordDate,
+        time: recordDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        power: parseFloat(recordPower.toFixed(2)),
       });
     }
-    perDeviceData[device.id] = deviceHistory;
+    deviceHistoryMap[device.id] = historyPoints;
   });
 
-  const totalData: DataPoint[] = [];
-  const allTimestamps = [...new Set(Object.values(perDeviceData).flat().map(p => p.date.getTime()))].sort();
+  const combinedData: DataPoint[] = [];
+  const uniqueTimes = [...new Set(Object.values(deviceHistoryMap).flat().map(point => point.date.getTime()))].sort();
 
-  allTimestamps.forEach(ts => {
-      const date = new Date(ts);
-      let totalPower = 0;
-      Object.values(perDeviceData).forEach(history => {
-          const point = history.find(p => p.date.getTime() === ts);
-          if (point) totalPower += point.power;
+  uniqueTimes.forEach(timeStamp => {
+      const pointDate = new Date(timeStamp);
+      let combinedPower = 0;
+      Object.values(deviceHistoryMap).forEach(deviceHistory => {
+          const matchingPoint = deviceHistory.find(p => p.date.getTime() === timeStamp);
+          if (matchingPoint) combinedPower += matchingPoint.power;
       });
-      totalData.push({
-          date,
-          time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          power: parseFloat(totalPower.toFixed(2)),
+      combinedData.push({
+          date: pointDate,
+          time: pointDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          power: parseFloat(combinedPower.toFixed(2)),
       });
   });
   
-  anomalies.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  unusualEvents.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
-  return { perDeviceData, totalData, anomalies };
+  return { perDeviceData: deviceHistoryMap, totalData: combinedData, anomalies: unusualEvents };
 };
 
-const { perDeviceData, totalData, anomalies } = generateFullHistoricalData();
+const { perDeviceData, totalData, anomalies } = buildHistoricalRecords();
 
-const generateInitialData = (): DataPoint[] => {
-  const data: DataPoint[] = [];
-  const now = new Date();
-  now.setHours(now.getHours() - 24);
-  for (let i = 0; i < 96; i++) { // 96 points for 24 hours (15-minute intervals)
-    const time = new Date(now.getTime() + i * 15 * 60 * 1000);
-    const hour = time.getHours();
+const createStartingData = (): DataPoint[] => {
+  const points: DataPoint[] = [];
+  const currentTime = new Date();
+  currentTime.setHours(currentTime.getHours() - 24);
+  
+  for (let pointIndex = 0; pointIndex < 96; pointIndex++) {
+    const pointTime = new Date(currentTime.getTime() + pointIndex * 15 * 60 * 1000);
+    const currentHour = pointTime.getHours();
     
-    let power = 1.5 + Math.sin((hour - 8) * (Math.PI / 12)) * 1.2 + Math.sin((hour - 18) * (Math.PI / 8)) * 1.5;
-    power += (Math.random() - 0.5) * 0.5;
-    power = Math.max(0.5, power);
+    let powerValue = 1.5;
+    powerValue += Math.sin((currentHour - 8) * (Math.PI / 12)) * 1.2;
+    powerValue += Math.sin((currentHour - 18) * (Math.PI / 8)) * 1.5;
+    powerValue += (Math.random() - 0.5) * 0.5;
+    if (powerValue < 0.5) powerValue = 0.5;
     
-    data.push({
-      date: time,
-      time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      power: parseFloat(power.toFixed(2)),
+    points.push({
+      date: pointTime,
+      time: pointTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      power: parseFloat(powerValue.toFixed(2)),
     });
   }
-  return data;
+  return points;
 };
 
-const generateForecastData = (liveData: DataPoint[]): DataPoint[] => {
-  return liveData.map(dp => {
-    let forecastPower = dp.power * (1 + (Math.random() - 0.5) * 0.2);
+const createForecastPoints = (currentData: DataPoint[]): DataPoint[] => {
+  return currentData.map(dataPoint => {
+    const variation = (Math.random() - 0.5) * 0.2;
+    const predictedPower = dataPoint.power * (1 + variation);
     return {
-      date: dp.date,
-      time: dp.time,
+      date: dataPoint.date,
+      time: dataPoint.time,
       power: 0,
-      forecast: parseFloat(forecastPower.toFixed(2)),
+      forecast: parseFloat(predictedPower.toFixed(2)),
     };
   });
 };
 
 const useMockData = () => {
-  const [liveData, setLiveData] = useState<DataPoint[]>(generateInitialData());
-  const [devices, setDevices] = useState<Device[]>(initialMockDevices);
+  const [currentData, setCurrentData] = useState<DataPoint[]>(createStartingData());
+  const [deviceList, setDeviceList] = useState<Device[]>(initialMockDevices);
 
   useEffect(() => {
-    const liveDataInterval = setInterval(() => {
-      setLiveData(prevData => {
-        const newData = [...prevData];
+    const updatePowerData = setInterval(() => {
+      setCurrentData(oldData => {
+        const updatedData = [...oldData];
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours();
         
-        const now = new Date();
-        const hour = now.getHours();
+        let calculatedPower = 1.5;
+        calculatedPower += Math.sin((currentHour - 8) * (Math.PI / 12)) * 1.2;
+        calculatedPower += Math.sin((currentHour - 18) * (Math.PI / 8)) * 1.5;
+        calculatedPower += (Math.random() - 0.5) * 0.5;
+        if (calculatedPower < 0.5) calculatedPower = 0.5;
         
-        let power = 1.5 + Math.sin((hour - 8) * (Math.PI / 12)) * 1.2 + Math.sin((hour - 18) * (Math.PI / 8)) * 1.5;
-        power += (Math.random() - 0.5) * 0.5;
-        power = Math.max(0.5, power);
-        
-        const newPoint: DataPoint = {
-          date: now,
-          time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          power: parseFloat(power.toFixed(2)),
+        const latestPoint: DataPoint = {
+          date: currentTime,
+          time: currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          power: parseFloat(calculatedPower.toFixed(2)),
         };
 
-        return [...newData.slice(1), newPoint];
+        return [...updatedData.slice(1), latestPoint];
       });
-    }, 5000); // Update every 5 seconds
+    }, 5000);
 
-    const deviceStatusInterval = setInterval(() => {
-      setDevices(prevDevices => {
-        const newDevices = [...prevDevices];
-        const deviceIndex = Math.floor(Math.random() * newDevices.length);
-        const deviceToUpdate = newDevices[deviceIndex];
+    const updateDeviceStatus = setInterval(() => {
+      setDeviceList(oldDevices => {
+        const updatedDevices = [...oldDevices];
+        const randomIndex = Math.floor(Math.random() * updatedDevices.length);
+        const selectedDevice = updatedDevices[randomIndex];
         
-        const possibleStatuses = Object.values(DeviceStatus).filter(s => s !== deviceToUpdate.status);
-        const newStatus = possibleStatuses[Math.floor(Math.random() * possibleStatuses.length)];
+        const availableStatuses = Object.values(DeviceStatus).filter(status => status !== selectedDevice.status);
+        const randomStatus = availableStatuses[Math.floor(Math.random() * availableStatuses.length)];
         
-        let newPower = deviceToUpdate.power;
-        if(newStatus === DeviceStatus.Offline) newPower = 0;
-        else if (newStatus === DeviceStatus.Idle) newPower = 10 + Math.random() * 20;
-        else if (newStatus === DeviceStatus.Online && deviceToUpdate.status === DeviceStatus.Offline) {
-            newPower = deviceToUpdate.normalPowerRange ? deviceToUpdate.normalPowerRange[0] + 50 : 100;
+        let updatedPower = selectedDevice.power;
+        if (randomStatus === DeviceStatus.Offline) {
+          updatedPower = 0;
+        } else if (randomStatus === DeviceStatus.Idle) {
+          updatedPower = 10 + Math.random() * 20;
+        } else if (randomStatus === DeviceStatus.Online && selectedDevice.status === DeviceStatus.Offline) {
+          updatedPower = selectedDevice.normalPowerRange ? selectedDevice.normalPowerRange[0] + 50 : 100;
         }
 
-        newDevices[deviceIndex] = { ...deviceToUpdate, status: newStatus, power: parseFloat(newPower.toFixed(0)) };
-        return newDevices;
+        updatedDevices[randomIndex] = { ...selectedDevice, status: randomStatus, power: parseFloat(updatedPower.toFixed(0)) };
+        return updatedDevices;
       });
-    }, 10000); // Change a device status every 10 seconds
+    }, 10000);
 
     return () => {
-      clearInterval(liveDataInterval);
-      clearInterval(deviceStatusInterval);
+      clearInterval(updatePowerData);
+      clearInterval(updateDeviceStatus);
     };
   }, []);
 
-  const forecastData = generateForecastData(liveData);
+  const forecastPoints = createForecastPoints(currentData);
   
-  const futureForecastData = useMemo(() => {
-    const data: DataPoint[] = [];
-    const lastTimestamp = liveData.length > 0 ? liveData[liveData.length - 1].date : new Date();
+  const upcomingForecast = useMemo(() => {
+    const forecastPoints: DataPoint[] = [];
+    const lastPointTime = currentData.length > 0 ? currentData[currentData.length - 1].date : new Date();
     
-    for (let i = 1; i <= 96; i++) { // 96 points for next 24 hours
-      const time = new Date(lastTimestamp.getTime() + i * 15 * 60 * 1000);
-      const hour = time.getHours();
+    for (let forecastIndex = 1; forecastIndex <= 96; forecastIndex++) {
+      const forecastTime = new Date(lastPointTime.getTime() + forecastIndex * 15 * 60 * 1000);
+      const forecastHour = forecastTime.getHours();
       
-      let forecastPower = 1.5 + Math.sin((hour - 8) * (Math.PI / 12)) * 1.2 + Math.sin((hour - 18) * (Math.PI / 8)) * 1.5;
-      forecastPower += (Math.random() - 0.5) * 0.4;
-      forecastPower = Math.max(0.5, forecastPower);
+      let predictedPower = 1.5;
+      predictedPower += Math.sin((forecastHour - 8) * (Math.PI / 12)) * 1.2;
+      predictedPower += Math.sin((forecastHour - 18) * (Math.PI / 8)) * 1.5;
+      predictedPower += (Math.random() - 0.5) * 0.4;
+      if (predictedPower < 0.5) predictedPower = 0.5;
       
-      data.push({
-        date: time,
-        time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      forecastPoints.push({
+        date: forecastTime,
+        time: forecastTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         power: 0,
-        forecast: parseFloat(forecastPower.toFixed(2)),
+        forecast: parseFloat(predictedPower.toFixed(2)),
       });
     }
-    return data;
-  }, [liveData]);
+    return forecastPoints;
+  }, [currentData]);
 
-
-  return { liveData, forecastData, recommendations: mockRecommendations, devices, historicalData: totalData, perDeviceHistoricalData: perDeviceData, anomalies, futureForecastData };
+  return { 
+    liveData: currentData, 
+    forecastData: forecastPoints, 
+    recommendations: mockRecommendations, 
+    devices: deviceList, 
+    historicalData: totalData, 
+    perDeviceHistoricalData: perDeviceData, 
+    anomalies, 
+    futureForecastData: upcomingForecast 
+  };
 };
 
 export default useMockData;

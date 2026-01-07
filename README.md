@@ -1,116 +1,131 @@
-# AI-PECO · AI-Powered Energy Consumption Optimizer
+# AI-PECO - Energy Consumption Dashboard
 
-AI-PECO is a Vite + React dashboard that helps households and small facilities understand how their devices draw power in real time. It combines live telemetry, forecast modeling, and a handcrafted assistant layer to surface anomalies, cost trends, and actionable recommendations with a tone that feels human—not robotic.
-
-
----
-
-## ✨ Highlights
-
-- Live + historical energy timelines with forecast overlays
-- Device-by-device diagnostics, statuses, and remote toggles
-- AI-style recommendation feed with contextual savings tips
-- Friendly chatbot that speaks Markdown and references the latest conversation history
-- Add/remove household devices to mirror your real setup (fans, heaters, routers, etc.)
-- Dark/light theming, keyboard-friendly navigation, and a responsive layout that feels natural on any screen
+AI-PECO is a web application built with React and TypeScript that helps users monitor and optimize their electricity consumption. The dashboard displays real-time power usage, device status, energy forecasts, and provides recommendations to reduce costs.
 
 ---
 
-## 🧱 Tech Stack
+## Features
 
-- **Frontend:** React 18, TypeScript, TailwindCSS, Recharts, Vite
-- **Logic:** Custom heuristic chatbot + analysis engine (no hosted AI dependency)
-- **Tooling:** ESLint, npm scripts, Vite build pipeline
-
----
-
-## 🧠 How It Works
-
-- **Mock data loop** — `hooks/useMockData.ts` simulates live draws, forecasts, device statuses, and anomalies so the UI feels alive without wiring up hardware yet.
-- **Insight layer** — `hooks/useChatAssistant.ts` and `components/SmartAnalysis.tsx` translate raw numbers into conversational guidance. The logic is deterministic and owned by this repo—no external AI calls.
-- **UI composition** — `App.tsx` swaps between views (`Dashboard`, `Chatbot`, `Devices`, `Reports`, `Settings`) while `Sidebar` + `Header` keep navigation predictable.
+- Real-time power consumption monitoring with live charts
+- Device management - view and track individual appliances
+- Energy consumption forecasts for the next 24 hours
+- Smart analysis tool that answers questions about usage patterns
+- Chat assistant for energy-saving tips and advice
+- Historical data viewing and reports
+- Dark and light theme support
+- Responsive design for all screen sizes
 
 ---
 
-## 🚀 Getting Started
+## Technology Stack
 
-### 1. Prerequisites
-
-- Node.js 18+
-- npm 9+ (bundled with newer Node installers)
-
-### 2. Install dependencies
-
-```bash
-npm install
-```
-
-### 3. Run the development server
-
-```bash
-npm run dev
-```
-
-Visit `http://localhost:5173` (or the port Vite prints) to explore the dashboard.
+- **React 19** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool and dev server
+- **Recharts** - Data visualization
+- **Tailwind CSS** - Styling
+- **Marked** - Markdown parsing
 
 ---
 
-## 🔧 Scripts
-
-| Command         | Description                              |
-|-----------------|------------------------------------------|
-| `npm run dev`   | Start Vite in dev mode with hot reload    |
-| `npm run build` | Create a production build in `dist/`      |
-| `npm run preview` | Serve the production build locally     |
-
----
-
-## 🧪 Testing & Quality
-
-- `npm run build` to ensure the TypeScript + bundler pipeline succeeds.
-- Use your browser devtools or Lighthouse against `npm run preview` for performance and accessibility budgets.
-- The project ships with TypeScript types across components and hooks, so favor type-safe additions over `any`.
-
----
-
-## 🗂 Project Layout
+## Project Structure
 
 ```
 AIPECO/
-├── components/          # Reusable UI building blocks
-├── contexts/            # Theme + global providers
-├── hooks/               # Custom hooks (mock data, chat, notifications)
-├── services/            # Reserved for future API adapters (currently empty)
-├── App.tsx              # Root layout and view switching
-├── types.ts             # Shared TypeScript contracts
-└── vite.config.ts
+├── components/       # React components (charts, views, UI elements)
+├── contexts/        # React context providers (theme)
+├── hooks/           # Custom React hooks (data, chat, notifications)
+├── services/        # API services (for future backend integration)
+├── App.tsx          # Main application component
+├── types.ts         # TypeScript type definitions
+└── vite.config.ts   # Vite configuration
 ```
 
 ---
 
-## 🔧 Customization Tips
+## Getting Started
 
-- **Data fidelity**: swap `useMockData` with real telemetry by hooking your API inside the hook; the rest of the app already expects the same shape.
-- **Chat voice**: update the `ENERGY_TIPS` array and rules in `useChatAssistant` to match your brand voice or domain expertise.
-- **Smart analysis**: extend `buildResponse` in `SmartAnalysis` with richer heuristics or plug in a local ML model if you want deeper insights.
+### Requirements
+
+- Node.js 18 or higher
+- npm 9 or higher
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open your browser and navigate to the URL shown in the terminal (usually `http://localhost:5173`)
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+This creates an optimized production build in the `dist/` folder.
+
+### Preview Production Build
+
+```bash
+npm run preview
+```
 
 ---
 
-## 🤝 Contributing
+## How It Works
 
-1. Fork the repo
-2. Create a feature branch: `git checkout -b feature/your-idea`
-3. Commit with context-rich messages
-4. Push and open a Pull Request
+The application uses mock data to simulate real-time energy monitoring:
 
-Please lint before pushing and avoid checking in `.env.local` or API keys.
-
----
-
-## 📄 License
-
-This project is distributed under the MIT License. Feel free to adapt it for your own dashboards, and let us know what you build!
+- **Data Generation**: The `useMockData` hook generates realistic power consumption data based on time-of-day patterns
+- **Device Simulation**: Device statuses and power levels are updated automatically to simulate real devices
+- **Chat Assistant**: A rule-based chatbot provides energy-saving advice based on user questions
+- **Analysis Engine**: The Smart Analysis component processes consumption data to answer user queries
 
 ---
 
-Made with care by the AI-PECO team. If something feels off or you have a feature idea, open an issue—we actually read them. 💡
+## Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server with hot reload |
+| `npm run build` | Create production build |
+| `npm run preview` | Preview the production build locally |
+
+---
+
+## Customization
+
+- **Connect Real Data**: Replace the mock data in `useMockData.ts` with API calls to your backend
+- **Modify Chat Responses**: Update the response logic in `useChatAssistant.ts` to change the assistant's behavior
+- **Add New Features**: Extend the Smart Analysis component or add new views in the `components/` folder
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+## Author
+
+Final Year Project - Software Engineering  
+University of Mianwali  
+2025
+
+---
+
+## Notes
+
+- Currently uses mock data for demonstration purposes
+- All analysis and recommendations are generated locally (no external AI services)
+- The application is designed to be easily extended with real hardware integration

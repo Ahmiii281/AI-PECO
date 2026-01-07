@@ -14,63 +14,61 @@ const DashboardView: React.FC = () => {
   const { liveData, forecastData, recommendations, devices, futureForecastData } = useMockData();
   const { notifications, removeNotification } = useDeviceNotifications(devices);
 
-  const latestPower = liveData.length > 0 ? liveData[liveData.length - 1].power : 0;
-  const dailyConsumption = liveData.reduce((sum, d) => sum + d.power, 0) / 4; // Assuming 15min intervals
-  const estimatedCost = dailyConsumption * 30; // Example rate: PKR 30 per kWh
+  const currentPower = liveData.length > 0 ? liveData[liveData.length - 1].power : 0;
+  const totalDailyUsage = liveData.reduce((total, point) => total + point.power, 0) / 4;
+  const dailyCost = totalDailyUsage * 30;
 
   const summaryCards = useMemo(
     () => [
       {
-        title: 'Live Power',
-        value: `${latestPower.toFixed(2)} kW`,
+        title: 'Current Power',
+        value: `${currentPower.toFixed(2)} kW`,
         icon: <LightningBoltIcon />,
         trend: '3%',
       },
       {
-        title: "Today's Consumption",
-        value: `${dailyConsumption.toFixed(1)} kWh`,
+        title: "Today's Usage",
+        value: `${totalDailyUsage.toFixed(1)} kWh`,
         icon: <ClockIcon />,
         trend: '5%',
       },
       {
-        title: 'Estimated Cost',
-        value: `PKR ${estimatedCost.toFixed(0)}`,
+        title: 'Daily Cost',
+        value: `PKR ${dailyCost.toFixed(0)}`,
         icon: <CurrencyDollarIcon />,
         trend: '-2%',
       },
     ],
-    [dailyConsumption, estimatedCost, latestPower]
+    [totalDailyUsage, dailyCost, currentPower]
   );
 
-  // Calculate forecast accuracy based on live and forecast data
   const forecastAccuracy = useMemo(() => {
     if (liveData.length === 0 || forecastData.length === 0 || liveData.length !== forecastData.length) {
       return 0;
     }
 
-    let totalPercentageError = 0;
-    let validPoints = 0;
+    let errorSum = 0;
+    let count = 0;
 
-    liveData.forEach((ld, index) => {
-      const actual = ld.power;
-      const forecast = forecastData[index]?.forecast;
+    liveData.forEach((dataPoint, idx) => {
+      const realValue = dataPoint.power;
+      const predictedValue = forecastData[idx]?.forecast;
 
-      // Use a small threshold to avoid division by zero or near-zero, which can skew results
-      if (forecast !== undefined && actual > 0.1) {
-        const error = Math.abs(actual - forecast) / actual;
-        totalPercentageError += error;
-        validPoints++;
+      if (predictedValue !== undefined && realValue > 0.1) {
+        const difference = Math.abs(realValue - predictedValue) / realValue;
+        errorSum += difference;
+        count++;
       }
     });
 
-    if (validPoints === 0) {
-      return 100; // If no valid points (e.g., all consumption is zero), accuracy is perfect
+    if (count === 0) {
+      return 100;
     }
 
-    const meanAbsolutePercentageError = totalPercentageError / validPoints;
-    const accuracy = Math.max(0, 100 * (1 - meanAbsolutePercentageError));
+    const averageError = errorSum / count;
+    const accuracyPercent = Math.max(0, 100 * (1 - averageError));
 
-    return accuracy;
+    return accuracyPercent;
   }, [liveData, forecastData]);
 
   return (
@@ -108,7 +106,7 @@ const DashboardView: React.FC = () => {
           <div className="space-y-8">
             <DeviceStatusList devices={devices} />
             <div className="bg-white dark:bg-gray-700/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-transparent">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">AI Recommendations</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Energy Saving Tips</h3>
               <div className="space-y-4">
                 {recommendations.map((rec) => (
                   <RecommendationCard key={rec.id} recommendation={rec} />

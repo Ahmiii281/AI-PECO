@@ -1,109 +1,106 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useState, useCallback } from 'react';
 import { ChatMessage } from '../types';
 
-const INITIAL_GREETING: ChatMessage = {
-  id: 'initial',
+const WELCOME_MESSAGE: ChatMessage = {
+  id: 'welcome',
   sender: 'bot',
-  text: "Hi there! I'm PECO-Bot. Ask me anything about your energy usage, billing surprises, or how to squeeze a few more watts out of your setup.",
+  text: "Hello! I'm your energy assistant. I can help you understand your power consumption, save money on bills, and optimize your device usage.",
 };
 
-const ENERGY_TIPS = [
-  'Group your high-draw devices on smart schedules so they do not overlap during peak tariff windows.',
-  'Fans plus a 24 °C AC setting usually feel the same as blasting 20 °C but uses ~15% less power.',
-  'Idle electronics still sip power. A smart strip can cut 20‑50 W without you noticing.',
-  'Try batching laundry after sunset if your utility offers off-peak rates—it is an easy win.',
-  'A weekly reminder to clean AC filters keeps airflow strong and prevents runaway consumption.',
+const SAVING_SUGGESTIONS = [
+  'Schedule high-power devices like AC and heaters to run during off-peak hours to reduce costs.',
+  'Setting your AC to 25°C with a fan uses less energy than running it at 20°C alone.',
+  'Unplug devices when not in use. Standby mode still consumes 20-50 watts of power.',
+  'Run washing machines and dryers in the evening when electricity rates are lower.',
+  'Clean your AC filters regularly to maintain efficiency and reduce power consumption.',
 ];
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const waitForResponse = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
 
-const craftResponse = (prompt: string, history: ChatMessage[]): string => {
-  const normalized = prompt.toLowerCase();
+const generateAnswer = (userQuestion: string, previousMessages: ChatMessage[]): string => {
+  const questionLower = userQuestion.toLowerCase();
 
-  if (normalized.includes('cost') || normalized.includes('bill')) {
+  if (questionLower.includes('cost') || questionLower.includes('price') || questionLower.includes('bill')) {
     return [
-      '### Bill Breakdown',
-      `- Recent peaks usually come from cooling loads and anything above 1.5 kW.`,
-      '- Spread heavy appliances across the day to keep demand charges low.',
-      '- Double-check whether your plan has an off-peak window; shifting 2–3 hours can shave noticeable costs.',
+      '### Cost Analysis',
+      '- High power usage usually happens when cooling or heating devices are running.',
+      '- Try to use heavy appliances at different times to avoid peak demand charges.',
+      '- Check if your electricity provider has lower rates during certain hours.',
     ].join('\n');
   }
 
-  if (normalized.includes('device')) {
-    const devicesMentioned = history
-      .filter((msg) => msg.sender === 'user')
-      .map((msg) => msg.text)
-      .join(' ')
-      .match(/ac|fridge|computer|lights|heater/gi);
-
-    const deviceList = devicesMentioned ? Array.from(new Set(devicesMentioned)).join(', ') : 'your core devices';
+  if (questionLower.includes('device') || questionLower.includes('appliance')) {
+    const userTexts = previousMessages
+      .filter((m) => m.sender === 'user')
+      .map((m) => m.text)
+      .join(' ');
+    
+    const foundDevices = userTexts.match(/ac|air conditioner|refrigerator|fridge|computer|laptop|lights|heater|fan/gi);
+    const deviceNames = foundDevices ? [...new Set(foundDevices)].join(', ') : 'your appliances';
 
     return [
-      `Here is a quick checklist for ${deviceList}:`,
-      '* Track their standby draw—anything above 30 W idle is worth investigating.',
-      '* Note when they spike; pairing that with the dashboard timeline makes anomalies much easier to spot.',
-      '* If something sits in “Idle” for hours, consider automating a shutoff rule.',
+      `Here are some tips for ${deviceNames}:`,
+      '* Check standby power - devices using more than 30W when idle need attention.',
+      '* Monitor when power spikes occur to identify which device is causing it.',
+      '* Set devices to turn off automatically when not needed.',
     ].join('\n');
   }
 
-  if (normalized.includes('forecast') || normalized.includes('predict')) {
+  if (questionLower.includes('forecast') || questionLower.includes('prediction') || questionLower.includes('future')) {
     return [
-      'Our forecast traces mirror the last 24 h pattern, so you will see a morning ramp, a noon lull, and an evening bump.',
-      'When the blue dashed line drifts above the green fill, it means you are tracking hotter than usual—time to trim loads.',
+      'The forecast is based on your past 24 hours of usage patterns.',
+      'You typically see higher usage in the morning and evening, with lower usage during midday.',
+      'If the forecast line is higher than actual usage, you are using less power than expected.',
     ].join('\n');
   }
 
-  const randomTip = ENERGY_TIPS[Math.floor(Math.random() * ENERGY_TIPS.length)];
-  return `I love that question. ${randomTip}`;
+  const randomSuggestion = SAVING_SUGGESTIONS[Math.floor(Math.random() * SAVING_SUGGESTIONS.length)];
+  return `That is a great question! ${randomSuggestion}`;
 };
 
 const useChatAssistant = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_GREETING]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  const [processing, setProcessing] = useState(false);
 
-  const sendMessage = useCallback(
-    async (rawInput: string) => {
-      const input = rawInput.trim();
-      if (!input || isLoading) {
+  const handleUserMessage = useCallback(
+    async (userInput: string) => {
+      const trimmedInput = userInput.trim();
+      if (!trimmedInput || processing) {
         return;
       }
 
-      const userMessage: ChatMessage = {
-        id: Date.now().toString(),
+      const newUserMsg: ChatMessage = {
+        id: `${Date.now()}`,
         sender: 'user',
-        text: input,
+        text: trimmedInput,
       };
 
-      setMessages((prev) => [...prev, userMessage]);
-      setIsLoading(true);
+      setChatHistory((oldHistory) => [...oldHistory, newUserMsg]);
+      setProcessing(true);
 
       try {
-        await sleep(650);
-        setMessages((prev) => {
-          const responseText = craftResponse(input, prev);
-          const botMessage: ChatMessage = {
-            id: (Date.now() + 1).toString(),
+        await waitForResponse(700);
+        setChatHistory((oldHistory) => {
+          const botReply = generateAnswer(trimmedInput, oldHistory);
+          const newBotMsg: ChatMessage = {
+            id: `${Date.now() + 1}`,
             sender: 'bot',
-            text: responseText,
+            text: botReply,
           };
-          return [...prev, botMessage];
+          return [...oldHistory, newBotMsg];
         });
       } finally {
-        setIsLoading(false);
+        setProcessing(false);
       }
     },
-    [isLoading]
+    [processing]
   );
 
-  return useMemo(
-    () => ({
-      messages,
-      isLoading,
-      sendMessage,
-    }),
-    [messages, isLoading, sendMessage]
-  );
+  return {
+    messages: chatHistory,
+    isLoading: processing,
+    sendMessage: handleUserMessage,
+  };
 };
 
 export default useChatAssistant;
-

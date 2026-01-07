@@ -9,7 +9,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class', // Enable class-based dark mode
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -34,27 +34,16 @@
     }
   </script>
   <script>
-      // IIFE to set theme before React loads to prevent flash of wrong theme
-      (function () {
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      (function setInitialTheme() {
+        const savedTheme = localStorage.theme;
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
           document.documentElement.classList.add('dark');
         } else {
           document.documentElement.classList.remove('dark');
         }
       })();
   </script>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.3.0",
-    "marked": "https://aistudiocdn.com/marked@^17.0.0"
-  }
-}
-</script>
   <link rel="stylesheet" href="/index.css">
 </head>
 
