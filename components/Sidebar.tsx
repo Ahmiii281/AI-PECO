@@ -15,6 +15,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
     { name: 'Dashboard', view: 'dashboard', icon: <ChartBarIcon /> },
     { name: 'AI Chatbot', view: 'chatbot', icon: <VoiceChatIcon /> },
     { name: 'Devices', view: 'devices', icon: <ChipIcon /> },
+    { name: 'Sensor (DHT)', view: 'dht', icon: <SunIcon /> },
     { name: 'Reports', view: 'reports', icon: <DocumentReportIcon /> },
     { name: 'Settings', view: 'settings', icon: <CogIcon /> },
   ];

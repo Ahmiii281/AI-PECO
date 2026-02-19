@@ -7,6 +7,7 @@ import ChatView from './components/ChatView';
 import DevicesView from './components/DevicesView';
 import ReportsView from './components/ReportsView';
 import SettingsView from './components/SettingsView';
+import DhtSerialView from './components/DhtSerialView';
 import { View } from './types';
 
 const App: React.FC = () => {
@@ -21,6 +22,8 @@ const App: React.FC = () => {
         return <ChatView />;
       case 'devices':
         return <DevicesView />;
+      case 'dht':
+        return <DhtSerialView />;
       case 'reports':
         return <ReportsView />;
       case 'settings':
