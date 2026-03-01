@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ChartBarIcon, ChipIcon, DocumentReportIcon, CogIcon, VoiceChatIcon, XIcon } from './Icons';
+import { ChartBarIcon, ChipIcon, DocumentReportIcon, CogIcon, VoiceChatIcon, XIcon, SunIcon } from './Icons';
 import { View } from '../types';
 
 interface SidebarProps {

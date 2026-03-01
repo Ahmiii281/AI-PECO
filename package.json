@@ -11,8 +11,10 @@
   "dependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-router-dom": "^7.2.0",
     "recharts": "^3.3.0",
-    "marked": "^17.0.0"
+    "marked": "^17.0.0",
+    "axios": "^1.6.8"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

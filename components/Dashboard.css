@@ -1,0 +1,272 @@
+.dashboard-container {
+  padding: 2rem;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.error-banner {
+  background-color: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 2rem;
+  border-left: 4px solid #c33;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.alert {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+  color: white;
+}
+
+.stat-label {
+  color: #999;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.stat-card.alert .stat-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.stat-card.alert .stat-value {
+  color: white;
+}
+
+/* Devices Section */
+.devices-section {
+  margin-bottom: 2rem;
+}
+
+.devices-section h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.devices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.device-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 3px solid transparent;
+}
+
+.device-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.device-card.selected {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.device-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.device-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status.online {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status.offline {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.device-location {
+  color: #999;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.device-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.relay-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.relay-btn.on {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.relay-btn.on:hover {
+  background-color: #c3e6cb;
+}
+
+.relay-btn.off {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.relay-btn.off:hover {
+  background-color: #f5c6cb;
+}
+
+/* Charts Section */
+.charts-section {
+  margin-bottom: 2rem;
+}
+
+.charts-section h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.chart-container {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.chart-container h3 {
+  margin-top: 0;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+/* Alerts Section */
+.alerts-section {
+  margin-bottom: 2rem;
+}
+
+.alerts-section h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.alert-item {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.alert-item.warning {
+  border-left-color: #ff9800;
+  background-color: #fff8f0;
+}
+
+.alert-item.critical {
+  border-left-color: #f44336;
+  background-color: #ffebee;
+}
+
+.alert-item.info {
+  border-left-color: #2196f3;
+  background-color: #e3f2fd;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-item strong {
+  color: #333;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.alert-item p {
+  margin: 0.5rem 0;
+  color: #666;
+}
+
+.alert-item small {
+  color: #999;
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.resolve-btn {
+  padding: 0.5rem 1rem;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.resolve-btn:hover {
+  background-color: #764ba2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
