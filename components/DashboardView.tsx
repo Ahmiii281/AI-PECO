@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ClockIcon, CurrencyDollarIcon, LightningBoltIcon, TargetIcon } from './Icons';
 import StatsCard from './StatsCard';
 import EnergyChart from './EnergyChart';
@@ -9,14 +9,57 @@ import DeviceStatusList from './DeviceStatusList';
 import NotificationToast from './NotificationToast';
 import useDeviceNotifications from '../hooks/useDeviceNotifications';
 import FutureForecastChart from './FutureForecastChart';
+import { dashboardAPI } from '../services/api';
+import authService from '../services/auth';
+import { USE_DEMO_DATA } from '../demoConfig';
+import type { DashboardStatsSummary } from '../types';
 
 const DashboardView: React.FC = () => {
+  const isDemoMode = USE_DEMO_DATA;
   const { liveData, forecastData, recommendations, devices, futureForecastData } = useMockData();
   const { notifications, removeNotification } = useDeviceNotifications(devices);
 
-  const currentPower = liveData.length > 0 ? liveData[liveData.length - 1].power : 0;
-  const totalDailyUsage = liveData.reduce((total, point) => total + point.power, 0) / 4;
-  const dailyCost = totalDailyUsage * 30;
+  const [backendStats, setBackendStats] = useState<DashboardStatsSummary | null>(null);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchStats = async () => {
+      if (!authService.isAuthenticated()) return;
+      try {
+        const stats = await dashboardAPI.getStats();
+        if (isMounted) {
+          setBackendStats(stats);
+          setStatsError(null);
+        }
+      } catch (error) {
+        console.error('Failed to load dashboard stats from backend', error);
+        if (isMounted) {
+          setBackendStats(null);
+          setStatsError('Using demo data (backend unavailable).');
+        }
+      }
+    };
+
+    fetchStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const currentPowerFromMock = liveData.length > 0 ? liveData[liveData.length - 1].power : 0;
+  const totalDailyUsageFromMock = liveData.reduce((total, point) => total + point.power, 0) / 4;
+  const dailyCostFromMock = totalDailyUsageFromMock * 30;
+
+  const currentPower =
+    backendStats && backendStats.total_power > 0
+      ? backendStats.total_power / 1000
+      : currentPowerFromMock;
+
+  const totalDailyUsage = totalDailyUsageFromMock;
+  const dailyCost = dailyCostFromMock;
 
   const summaryCards = useMemo(
     () => [
@@ -92,6 +135,30 @@ const DashboardView: React.FC = () => {
           ))}
           <StatsCard title="Forecast Accuracy" value={`${forecastAccuracy.toFixed(1)}%`} icon={<TargetIcon />} />
         </div>
+
+        {backendStats && (
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+            <p>
+              Backend live stats: {backendStats.device_count} device(s), avg temp {backendStats.avg_temperature.toFixed(1)}°C, avg humidity{' '}
+              {backendStats.avg_humidity.toFixed(1)}%.
+            </p>
+            <p>
+              Active alerts: <span className="font-semibold">{backendStats.alert_count}</span>
+            </p>
+          </div>
+        )}
+        {statsError && !backendStats && (
+          <p className="text-xs sm:text-sm text-yellow-600 dark:text-yellow-400">
+            {statsError}
+          </p>
+        )}
+
+        {/* Demo mode banner */}
+        {isDemoMode && (
+          <div className="rounded-lg border border-dashed border-yellow-400 bg-yellow-50 text-xs sm:text-sm text-yellow-800 px-3 py-2 mb-4">
+            You are currently viewing <span className="font-semibold">sample demo data</span> generated in the browser. Backend stats are used when available.
+          </div>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

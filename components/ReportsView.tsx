@@ -6,6 +6,7 @@ import { DataPoint, Anomaly } from '../types';
 import StatsCard from './StatsCard';
 import { CalculatorIcon, ClockIcon, CurrencyDollarIcon, LightningBoltIcon, DownloadIcon, ShieldExclamationIcon, ExclamationCircleIcon } from './Icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { USE_DEMO_DATA } from '../demoConfig';
 
 type TimeRange = '24h' | '7d' | '30d';
 
@@ -217,8 +218,15 @@ const ReportsView: React.FC = () => {
     <div className="p-4 md:p-6 lg:p-8 space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Reports & Analytics</h1>
-          <p className="text-md text-gray-500 dark:text-gray-400">Analyze historical data and gain insights into your energy usage.</p>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Reports &amp; Analytics</h1>
+          <p className="text-md text-gray-500 dark:text-gray-400">
+            Analyze historical data and gain insights into your energy usage.
+          </p>
+          {USE_DEMO_DATA && (
+            <p className="mt-1 text-xs text-yellow-700 bg-yellow-50 border border-yellow-300 rounded px-2 py-1 inline-block">
+              Charts below are based on <span className="font-semibold">sample demo data</span>. Connect devices and backend history to go live.
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
             <TimeRangeButton range="24h" label="24h" />

@@ -65,3 +65,21 @@ export interface Anomaly {
   value: number; // the anomalous power value
   normalRange: [number, number];
 }
+
+export interface DashboardStatsSummary {
+  total_power: number;
+  avg_temperature: number;
+  avg_humidity: number;
+  alert_count: number;
+  device_count: number;
+}
+
+export interface BackendDevice {
+  id: string;
+  name: string;
+  location: string;
+  status: string;
+  is_relay_on: boolean;
+  relay_pin: number;
+  created_at: string;
+}

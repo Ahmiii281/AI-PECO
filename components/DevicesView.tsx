@@ -1,9 +1,12 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import useMockData from '../hooks/useMockData';
-import { Device, DeviceStatus, Notification } from '../types';
+import { BackendDevice, Device, DeviceStatus, Notification } from '../types';
 import DeviceCard from './DeviceCard';
 import NotificationToast from './NotificationToast';
+import { deviceAPI, dashboardAPI } from '../services/api';
+import authService from '../services/auth';
+import { USE_DEMO_DATA } from '../demoConfig';
 
 type DeviceTemplate = {
   id: string;
@@ -144,8 +147,11 @@ const customTemplateDefaults = {
 
 // --- Main View Component ---
 const DevicesView: React.FC = () => {
+  const isDemoMode = USE_DEMO_DATA;
   const { devices: initialDevices } = useMockData();
   const [devices, setDevices] = useState<Device[]>(initialDevices);
+  const [isBackendMode, setIsBackendMode] = useState(false);
+  const [isLoadingBackend, setIsLoadingBackend] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(DEVICE_TEMPLATES[0].id);
   const [customName, setCustomName] = useState('');
@@ -153,6 +159,52 @@ const DevicesView: React.FC = () => {
   const [customMaxPower, setCustomMaxPower] = useState(customTemplateDefaults.maxPower);
   const [customAdjustable, setCustomAdjustable] = useState(customTemplateDefaults.isAdjustable);
   const [formError, setFormError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBackendDevices = async () => {
+      if (!authService.isAuthenticated()) return;
+      setIsLoadingBackend(true);
+      try {
+        const backendDevices: BackendDevice[] = await deviceAPI.getAll();
+        if (!isMounted) return;
+
+        const mappedDevices: Device[] = backendDevices.map((d) => {
+          const status = String(d.status || '').toLowerCase();
+          let mappedStatus = DeviceStatus.Offline;
+          if (status === 'online') mappedStatus = DeviceStatus.Online;
+          else if (status === 'idle') mappedStatus = DeviceStatus.Idle;
+
+          return {
+            id: d.id,
+            name: d.name,
+            status: mappedStatus,
+            power: 0,
+            isAdjustable: true,
+            maxPower: 2000,
+            tips: [`Backend device at ${d.location}`, `Relay pin: ${d.relay_pin}`],
+          };
+        });
+
+        setDevices(mappedDevices.length ? mappedDevices : initialDevices);
+        setIsBackendMode(mappedDevices.length > 0);
+      } catch (error) {
+        console.error('Failed to load devices from backend', error);
+        setIsBackendMode(false);
+      } finally {
+        if (isMounted) {
+          setIsLoadingBackend(false);
+        }
+      }
+    };
+
+    loadBackendDevices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialDevices]);
 
   const addNotification = (message: string, type: Notification['type']) => {
     const id = Date.now();
@@ -175,6 +227,16 @@ const DevicesView: React.FC = () => {
     const type = isTurningOn ? 'success' : 'info';
     
     addNotification(message, type);
+
+    if (isBackendMode) {
+      const command = isTurningOn ? 'ON' : 'OFF';
+      dashboardAPI
+        .controlRelay(deviceId, command)
+        .catch((error) => {
+          console.error('Failed to send relay command', error);
+          addNotification('Failed to sync with backend relay. Local state only.', 'warning');
+        });
+    }
 
     setDevices(prevDevices =>
       prevDevices.map(d => {
@@ -214,6 +276,15 @@ const DevicesView: React.FC = () => {
     );
   };
   const handleDeleteDevice = (deviceId: string) => {
+    if (isBackendMode) {
+      deviceAPI
+        .delete(deviceId)
+        .catch((error) => {
+          console.error('Failed to delete device in backend', error);
+          addNotification('Backend delete failed, removing from local view only.', 'warning');
+        });
+    }
+
     setDevices(prevDevices => {
       const device = prevDevices.find(d => d.id === deviceId);
       if (!device) return prevDevices;
@@ -275,7 +346,25 @@ const DevicesView: React.FC = () => {
         : undefined,
     };
 
-    setDevices(prev => [...prev, deviceToAdd]);
+    if (isBackendMode) {
+      deviceAPI
+        .create(effectiveName, 'Home', 26)
+        .then((created: BackendDevice) => {
+          const createdMapped: Device = {
+            ...deviceToAdd,
+            id: created.id,
+            tips: [`Backend device at ${created.location}`, `Relay pin: ${created.relay_pin}`],
+          };
+          setDevices(prev => [...prev, createdMapped]);
+        })
+        .catch((error) => {
+          console.error('Failed to create device in backend', error);
+          addNotification('Device added locally, but backend sync failed.', 'warning');
+          setDevices(prev => [...prev, deviceToAdd]);
+        });
+    } else {
+      setDevices(prev => [...prev, deviceToAdd]);
+    }
     addNotification(`${effectiveName} added to your home.`, 'success');
     setCustomName('');
     setFormError('');
@@ -304,10 +393,14 @@ const DevicesView: React.FC = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Device Control</h1>
-            <p className="text-md text-gray-500 dark:text-gray-400">Remotely manage and monitor your devices.</p>
+            <p className="text-md text-gray-500 dark:text-gray-400">
+              Remotely manage and monitor your devices{isDemoMode ? ' using a demo library of sample appliances.' : '.'}
+            </p>
           </div>
           <div className="w-full sm:w-auto text-left sm:text-right">
-              <p className="text-lg font-semibold text-gray-500 dark:text-gray-400">Total Live Power</p>
+              <p className="text-lg font-semibold text-gray-500 dark:text-gray-400">
+                Total Live Power {isBackendMode && '(backend devices)'}
+              </p>
               <p className="text-4xl font-bold text-green-600 dark:text-green-400">{(totalPower / 1000).toFixed(2)} kW</p>
           </div>
         </div>
