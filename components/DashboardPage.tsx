@@ -99,6 +99,10 @@ export default function Dashboard() {
           <div className="stat-label">Avg Humidity</div>
           <div className="stat-value">{stats?.avg_humidity?.toFixed(1) || 0}%</div>
         </div>
+        <div className="stat-card">
+          <div className="stat-label">Forecasted Power</div>
+          <div className="stat-value">{stats?.forecasted_power?.toFixed(0) || 0}W</div>
+        </div>
         <div className="stat-card alert">
           <div className="stat-label">Alerts</div>
           <div className="stat-value">{stats?.alert_count || 0}</div>

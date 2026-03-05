@@ -2,13 +2,13 @@
 Device management service
 """
 from bson import ObjectId
-from motor.motor_asyncio import AsyncDatabase
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from datetime import datetime, timedelta
 from typing import List
 
 
 class DeviceService:
-    def __init__(self, db: AsyncDatabase):
+    def __init__(self, db: AsyncIOMotorDatabase):
         self.db = db
         self.devices_collection = db.devices
         self.energy_collection = db.energy_data

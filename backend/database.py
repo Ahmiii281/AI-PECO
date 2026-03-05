@@ -1,12 +1,12 @@
 """
 Database initialization and connections
 """
-from motor.motor_asyncio import AsyncClient, AsyncDatabase
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from config import settings
 
 # Global database instance
-client: AsyncClient = None
-db: AsyncDatabase = None
+client: AsyncIOMotorClient = None
+db: AsyncIOMotorDatabase = None
 
 
 async def connect_db():
@@ -14,12 +14,16 @@ async def connect_db():
     Connect to MongoDB
     """
     global client, db
-    client = AsyncClient(settings.MONGODB_URL)
-    db = client[settings.DATABASE_NAME]
     
-    # Create indexes
-    await create_indexes()
-    print("✓ Connected to MongoDB")
+    # Create indexes and DB connect
+    try:
+        # Prevent DNS timeout hang / configuration error on fake srv strings for demo
+        client = AsyncIOMotorClient(settings.MONGODB_URL, serverSelectionTimeoutMS=2000)
+        db = client[settings.DATABASE_NAME]
+        await create_indexes()
+        print("✓ Connected to MongoDB")
+    except Exception as e:
+        print(f"⚠ Could not connect to real MongoDB (running in offline/demo mode): {e}")
 
 
 async def close_db():
@@ -55,7 +59,7 @@ async def create_indexes():
     await db.recommendations.create_index("timestamp")
 
 
-def get_db() -> AsyncDatabase:
+def get_db() -> AsyncIOMotorDatabase:
     """
     Get database instance
     """

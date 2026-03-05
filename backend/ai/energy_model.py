@@ -1,16 +1,13 @@
 """
 AI/ML Energy Consumption Model
 Features:
-- Linear Regression for power prediction
+- Simple Moving Average for power forecasting
 - Anomaly detection using statistical methods
 - Smart recommendations
 """
 import statistics
 from typing import List, Dict, Tuple
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import StandardScaler
-import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 class EnergyModel:
@@ -24,71 +21,29 @@ class EnergyModel:
         """
         self.energy_price_per_unit = energy_price_per_unit
         self.anomaly_threshold_sigma = anomaly_threshold_sigma
-        self.model = LinearRegression()
-        self.scaler = StandardScaler()
-        self.is_trained = False
 
-    def prepare_time_features(self, timestamps: List[datetime]) -> np.ndarray:
+    def calculate_sma(self, energy_readings: List[Dict], window_size: int = 5) -> float:
         """
-        Convert timestamps to numeric features for regression
-        """
-        # Convert to hours since first timestamp
-        if not timestamps:
-            return np.array([]).reshape(-1, 1)
-
-        first_time = timestamps[0]
-        hours = np.array([
-            (t - first_time).total_seconds() / 3600
-            for t in timestamps
-        ])
-
-        return hours.reshape(-1, 1)
-
-    def train_power_model(self, energy_readings: List[Dict]) -> bool:
-        """
-        Train linear regression model on historical data
+        Calculate Simple Moving Average (SMA) of power consumption.
         
         Args:
-            energy_readings: List of {timestamp, power, ...}
+            energy_readings: List of energy readings
+            window_size: Number of recent readings to average
             
         Returns:
-            True if successfully trained, False otherwise
+            Forecasted power in watts
         """
-        if len(energy_readings) < 3:
-            return False
-
-        timestamps = [r["timestamp"] if isinstance(r["timestamp"], datetime) 
-                     else datetime.fromisoformat(r["timestamp"]) 
-                     for r in energy_readings]
-        powers = np.array([r["power"] for r in energy_readings]).reshape(-1, 1)
-
-        X = self.prepare_time_features(timestamps)
-
-        try:
-            self.model.fit(X, powers)
-            self.is_trained = True
-            return True
-        except Exception as e:
-            print(f"Training failed: {e}")
-            return False
-
-    def predict_power(self, hours_ahead: int = 1) -> float:
-        """
-        Predict power consumption N hours in advance
-        
-        Args:
-            hours_ahead: Number of hours to predict ahead
-            
-        Returns:
-            Predicted power in watts
-        """
-        if not self.is_trained:
+        if not energy_readings:
             return 0.0
 
-        X_pred = np.array([[hours_ahead]])
-        prediction = self.model.predict(X_pred)[0][0]
-
-        return max(0.0, prediction)  # Power cannot be negative
+        # Take the most recent `window_size` readings
+        recent_readings = energy_readings[:window_size]
+        powers = [r["power"] for r in recent_readings]
+        
+        if not powers:
+            return 0.0
+            
+        return sum(powers) / len(powers)
 
     def detect_anomalies(self, energy_readings: List[Dict]) -> Tuple[List[Dict], float, float]:
         """
@@ -108,7 +63,7 @@ class EnergyModel:
 
         try:
             mean_power = statistics.mean(powers)
-            std_dev = statistics.stdev(powers)
+            std_dev = statistics.stdev(powers) if len(powers) > 1 else 0
         except (ValueError, statistics.StatisticsError):
             return [], 0, 0
 
@@ -144,17 +99,13 @@ class EnergyModel:
                 "action": None
             }
 
-        # Calculate average anomaly power
         avg_anomaly_power = statistics.mean([a["power"] for a in anomalies])
-        reduction_target = avg_anomaly_power * 0.30  # 30% reduction
+        reduction_target = avg_anomaly_power * 0.30 
 
-        # Estimate savings (assuming 50 PKR per kWh, and 5-second interval readings)
-        # Rough estimate: readings are every 5 seconds, so ~288 readings per day
-        estimated_daily_usage = (mean_power / 1000) * 24  # kWh per day
-        estimated_reduction = (reduction_target / 1000) * 24  # kWh per day if consistently reduced
+        estimated_reduction = (reduction_target / 1000) * 24 
         estimated_savings = estimated_reduction * self.energy_price_per_unit
 
-        message = f"Anomaly detected in power consumption! " \
+        message = f"Anomaly detected! " \
                  f"Peak power: {avg_anomaly_power:.0f}W. " \
                  f"Suggest reducing runtime by 30%. " \
                  f"Potential daily savings: PKR {estimated_savings:.2f}"
@@ -174,14 +125,7 @@ class EnergyModel:
 
     def forecast_daily_cost(self, avg_power: float, usage_hours: float = 24) -> float:
         """
-        Forecast daily energy cost
-        
-        Args:
-            avg_power: Average power in watts
-            usage_hours: Daily usage hours
-            
-        Returns:
-            Estimated daily cost in PKR
+        Forecast daily energy cost based on SMA / Avg Power
         """
         daily_kwh = (avg_power / 1000) * usage_hours
         daily_cost = daily_kwh * self.energy_price_per_unit

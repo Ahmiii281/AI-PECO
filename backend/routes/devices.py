@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from database import get_db
 from services.device_service import DeviceService
 from schemas import DeviceCreate, DeviceUpdate, DeviceResponse
-from routes.auth import get_current_user
+from routes.auth import get_current_user, get_current_admin
 
 router = APIRouter(prefix="/api/devices", tags=["devices"])
 
@@ -133,3 +133,24 @@ async def delete_device(
         return {"message": "Device deleted successfully"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+@router.get("/admin/all", response_model=list)
+async def get_all_devices_admin(admin_id: str = Depends(get_current_admin)):
+    """
+    Admin: Get all devices in the system
+    """
+    db = get_db()
+    devices = await db.devices.find().to_list(1000)
+    return [
+        {
+            "id": str(device["_id"]),
+            "user_id": str(device.get("user_id", "")),
+            "name": device["name"],
+            "location": device["location"],
+            "status": device["status"],
+            "is_relay_on": device.get("is_relay_on", False),
+            "relay_pin": device.get("relay_pin", 5),
+            "created_at": device.get("created_at"),
+        }
+        for device in devices
+    ]

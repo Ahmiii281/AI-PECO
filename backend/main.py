@@ -25,6 +25,7 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description="AI-Powered Energy Consumption Optimizer",
+    lifespan=lifespan,
 )
 
 # Add CORS middleware
@@ -41,7 +42,17 @@ app.include_router(auth.router)
 app.include_router(devices.router)
 app.include_router(energy.router)
 app.include_router(dashboard.router)
+app.include_router(dashboard.router)
 
+from fastapi.responses import JSONResponse
+import traceback
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc: Exception):
+    with open("fastapi_errors.log", "a") as f:
+        f.write("Global error:\n")
+        traceback.print_exc(file=f)
+    print("Caught:", exc)
+    return JSONResponse(status_code=500, content={"detail": str(exc)})
 
 @app.get("/health")
 async def health_check():

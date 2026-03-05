@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import DashboardView from './components/DashboardView';
@@ -8,9 +9,12 @@ import DevicesView from './components/DevicesView';
 import ReportsView from './components/ReportsView';
 import SettingsView from './components/SettingsView';
 import DhtSerialView from './components/DhtSerialView';
+import Login from './components/Login';
+import Register from './components/Register';
+import ProtectedRoute from './components/ProtectedRoute';
 import { View } from './types';
 
-const App: React.FC = () => {
+const MainApp: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -35,9 +39,9 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900 font-sans">
-      <Sidebar 
-        activeView={activeView} 
-        setActiveView={setActiveView} 
+      <Sidebar
+        activeView={activeView}
+        setActiveView={setActiveView}
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}
       />
@@ -48,6 +52,26 @@ const App: React.FC = () => {
         </main>
       </div>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <MainApp />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </Router>
   );
 };
 

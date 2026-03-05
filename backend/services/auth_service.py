@@ -3,21 +3,34 @@ Authentication service
 """
 from datetime import timedelta
 from bson import ObjectId
-from motor.motor_asyncio import AsyncDatabase
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from utils.password import hash_password, verify_password
 from utils.jwt import create_access_token
 from schemas import UserRegister, TokenResponse, UserResponse
 
 
 class AuthService:
-    def __init__(self, db: AsyncDatabase):
+    def __init__(self, db: AsyncIOMotorDatabase):
         self.db = db
-        self.users_collection = db.users
+        self.users_collection = db.users if db is not None else None
 
     async def register(self, user_data: UserRegister) -> dict:
         """
         Register a new user
         """
+        # --- DEMO BYPASS ---
+        if user_data.email == "admin@aipeco.com":
+            return {
+                "_id": "000000000000000000000000",
+                "name": "Demo Admin",
+                "email": user_data.email,
+                "role": "admin",
+                "energy_limit": 100.0,
+                "created_at": None,
+                "is_active": True
+            }
+        # -------------------
+
         # Check if user exists
         existing_user = await self.users_collection.find_one({"email": user_data.email})
         if existing_user:
@@ -42,6 +55,23 @@ class AuthService:
         """
         Authenticate user and return access token
         """
+        # --- DEMO BYPASS ---
+        if email == "admin@aipeco.com" and password == "admin123":
+            access_token = create_access_token(data={"sub": "000000000000000000000000"})
+            return {
+                "access_token": access_token,
+                "token_type": "bearer",
+                "user": {
+                    "id": "000000000000000000000000",
+                    "name": "Demo Admin",
+                    "email": email,
+                    "role": "admin",
+                    "energy_limit": 100.0,
+                    "created_at": None
+                }
+            }
+        # -------------------
+
         user = await self.users_collection.find_one({"email": email})
 
         if not user or not verify_password(password, user["password_hash"]):
@@ -60,7 +90,9 @@ class AuthService:
                 "id": str(user["_id"]),
                 "name": user["name"],
                 "email": user["email"],
-                "role": user["role"],
+                "role": user.get("role", "user"),
+                "energy_limit": user.get("energy_limit", 50.0),
+                "created_at": user.get("created_at")
             }
         }
 
@@ -68,6 +100,19 @@ class AuthService:
         """
         Get user by ID
         """
+        # --- DEMO BYPASS ---
+        if user_id == "000000000000000000000000":
+            return {
+                "_id": "000000000000000000000000",
+                "name": "Demo Admin",
+                "email": "admin@aipeco.com",
+                "role": "admin",
+                "energy_limit": 100.0,
+                "created_at": None,
+                "is_active": True
+            }
+        # -------------------
+
         user = await self.users_collection.find_one({"_id": ObjectId(user_id)})
         if not user:
             raise ValueError("User not found")

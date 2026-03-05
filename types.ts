@@ -72,6 +72,7 @@ export interface DashboardStatsSummary {
   avg_humidity: number;
   alert_count: number;
   device_count: number;
+  forecasted_power?: number;
 }
 
 export interface BackendDevice {

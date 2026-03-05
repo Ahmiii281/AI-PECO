@@ -4,6 +4,7 @@
  */
 
 import { authAPI } from "./api";
+import { DEMO_LOGIN } from "../demoConfig";
 
 export interface User {
   id: string;
@@ -42,6 +43,21 @@ class AuthService {
   }
 
   async login(email: string, password: string): Promise<AuthToken> {
+    if (DEMO_LOGIN) {
+      try {
+        // Try real login with admin credentials
+        const response = await authAPI.login("admin@aipeco.com", "admin123");
+        this.setToken(response.access_token);
+        if (response.user) {
+          this.setUser(response.user);
+        }
+        return response;
+      } catch (err) {
+        // If it fails, fallback to trying the user provided or creating an error
+        console.warn("Demo login with admin credentials failed. Ensure db is seeded.");
+      }
+    }
+
     const response = await authAPI.login(email, password);
     this.setToken(response.access_token);
     if (response.user) {

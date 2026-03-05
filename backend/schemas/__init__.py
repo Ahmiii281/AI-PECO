@@ -18,22 +18,22 @@ class UserLogin(BaseModel):
     password: str
 
 
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    user: Optional["UserResponse"] = None
-
-
 class UserResponse(BaseModel):
     id: str
     name: str
     email: str
     role: str
-    energy_limit: float
-    created_at: datetime
+    energy_limit: float = 50.0
+    created_at: datetime = None
 
     class Config:
         from_attributes = True
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: Optional[UserResponse] = None
 
 
 # Device Schemas
@@ -123,6 +123,7 @@ class DashboardStats(BaseModel):
     avg_humidity: float
     alert_count: int
     device_count: int
+    forecasted_power: Optional[float] = 0.0
 
 
 class RelayCommand(BaseModel):

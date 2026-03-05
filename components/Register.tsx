@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import authService from '../../services/auth';
+import authService from '../services/auth';
 import './Auth.css';
 
 export default function Register() {
@@ -50,7 +50,7 @@ export default function Register() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="John Doe"
+              placeholder="Ali Ahmed"
               required
             />
           </div>
@@ -61,7 +61,7 @@ export default function Register() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
+              placeholder="ali@email.com"
               required
             />
           </div>

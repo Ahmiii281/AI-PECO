@@ -2,7 +2,7 @@
 Energy data and analytics service
 """
 from bson import ObjectId
-from motor.motor_asyncio import AsyncDatabase
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from datetime import datetime, timedelta
 from typing import List
 import statistics
@@ -10,7 +10,7 @@ from schemas import AlertResponse
 
 
 class EnergyService:
-    def __init__(self, db: AsyncDatabase):
+    def __init__(self, db: AsyncIOMotorDatabase):
         self.db = db
         self.energy_collection = db.energy_data
         self.alerts_collection = db.alerts
@@ -18,21 +18,63 @@ class EnergyService:
 
     async def save_energy_data(self, device_id: str, energy_data: dict) -> dict:
         """
-        Save energy reading from ESP32
+        Save energy reading from ESP32 with deterministic calculation
         """
+        # 1. Deterministic power calculation based on state
+        device = await self.db.devices.find_one({"_id": ObjectId(device_id)})
+        is_relay_on = device.get("is_relay_on", False) if device else False
+        
+        voltage = 220.0
+        pf = 0.9
+        relay_current = 0.8 if is_relay_on else 0.0
+        calculated_power = voltage * relay_current * pf
+        
+        temp = energy_data.get("temperature", 0.0)
+        humidity = energy_data.get("humidity", 0.0)
+        
         doc = {
             "device_id": ObjectId(device_id),
-            "current": energy_data["current"],
-            "voltage": energy_data["voltage"],
-            "power": energy_data["power"],
-            "temperature": energy_data["temperature"],
-            "humidity": energy_data["humidity"],
+            "current": relay_current,
+            "voltage": voltage,
+            "power": calculated_power,
+            "temperature": temp,
+            "humidity": humidity,
             "is_anomaly": False,
             "timestamp": datetime.utcnow(),
         }
 
         result = await self.energy_collection.insert_one(doc)
         doc["_id"] = result.inserted_id
+
+        # 2. Priority Logic / Automation based on User's devices
+        if device and "user_id" in device:
+            user_id = device["user_id"]
+            
+            # High Temperature -> Trigger Cooling
+            if temp > 35.0:
+                cooling_device = await self.db.devices.find_one({
+                    "user_id": user_id, 
+                    "name": {"$regex": "cooling|ac|fan|relay1", "$options": "i"}
+                })
+                if cooling_device and not cooling_device.get("is_relay_on"):
+                    await self.db.devices.update_one(
+                        {"_id": cooling_device["_id"]},
+                        {"$set": {"is_relay_on": True, "updated_at": datetime.utcnow()}}
+                    )
+                    await self.create_alert(str(user_id), "High Temp: Auto-started cooling relay", "info")
+
+            # High Humidity -> Trigger Ventilation
+            if humidity > 70.0:
+                vent_device = await self.db.devices.find_one({
+                    "user_id": user_id, 
+                    "name": {"$regex": "ventilation|exhaust|relay2", "$options": "i"}
+                })
+                if vent_device and not vent_device.get("is_relay_on"):
+                    await self.db.devices.update_one(
+                        {"_id": vent_device["_id"]},
+                        {"$set": {"is_relay_on": True, "updated_at": datetime.utcnow()}}
+                    )
+                    await self.create_alert(str(user_id), "High Humidity: Auto-started ventilation relay", "info")
 
         return doc
 
@@ -54,6 +96,7 @@ class EnergyService:
         Get aggregated dashboard statistics for user
         """
         # Get user's devices
+        from ai.energy_model import EnergyModel
         devices = await self.db.devices.find(
             {"user_id": ObjectId(user_id)}
         ).to_list(100)
@@ -96,12 +139,22 @@ class EnergyService:
             "resolved": False
         })
 
+        # Calculate SMA Forecast
+        recent_data = await self.energy_collection.find({
+            "device_id": {"$in": device_ids[0:1] if device_ids else []},
+            "timestamp": {"$gte": datetime.utcnow() - timedelta(hours=24)}
+        }).sort("timestamp", -1).to_list(10)
+        
+        model = EnergyModel()
+        forecasted_power = model.calculate_sma(recent_data)
+        
         return {
             "total_power": stats.get("total_power", 0),
             "avg_temperature": round(stats.get("avg_temperature", 0), 2),
             "avg_humidity": round(stats.get("avg_humidity", 0), 2),
             "alert_count": alert_count,
             "device_count": len(devices),
+            "forecasted_power": round(forecasted_power, 2)
         }
 
     async def detect_anomalies(self, device_id: str, threshold_sigma: float = 2.0):

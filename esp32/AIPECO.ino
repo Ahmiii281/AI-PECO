@@ -4,25 +4,25 @@
 #include <ArduinoJson.h>
 
 // configuration
-const char* ssid = "YOUR_SSID";
-const char* password = "YOUR_PASSWORD";
+const char* ssid = "Infinix NOTE";
+const char* password = "aipeco123";
 
 const char* backendUrl = "http://your.backend.url"; // replace with your deployed backend or localhost
 
 // pins
-#define DHTPIN 32
-#define RELAY1 26
-#define RELAY2 27
-#define RELAY3 25
-#define RELAY4 33
+#define DHTPIN 26
+#define RELAY1 18
+#define RELAY2 19
+#define RELAY3 21
+#define RELAY4 22
 
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
 // state
-float simulatedCurrent = 0;
 unsigned long lastPost = 0;
 unsigned long lastPoll = 0;
+int currentPollIndex = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -41,18 +41,20 @@ void loop() {
   }
 
   unsigned long now = millis();
-  if (now - lastPost > 5000) {
+  
+  // Non-blocking JSON POST every 5 seconds
+  if (now - lastPost >= 5000) {
     sendSensorData();
     lastPost = now;
   }
 
-  if (now - lastPoll > 5000) {
-    pollCommands();
+  // Non-blocking POLL (poll 1 device every 1.5 seconds to avoid blocking the main loop too long)
+  if (now - lastPoll >= 1500) {
+    pollNextDeviceCommand();
     lastPoll = now;
   }
 
-  controlRelaysByTemp();
-  delay(200);
+  delay(50);
 }
 
 void connectWiFi() {
@@ -68,21 +70,20 @@ void connectWiFi() {
 void sendSensorData() {
   float temperature = dht.readTemperature();
   float humidity = dht.readHumidity();
+  
   if (isnan(temperature) || isnan(humidity)) {
     Serial.println("Failed to read from DHT sensor!");
-    return;
+    // Defaulting to 0 for fallback instead of returning
+    temperature = 0;
+    humidity = 0;
   }
 
-  // simulate current between 0.5 and 5A
-  simulatedCurrent = 0.5 + random(0, 4500) / 1000.0;
-  float voltage = 220.0;
-  float power = simulatedCurrent * voltage;
-
+  // Payload structure for the deterministic backend calculation
   StaticJsonDocument<200> doc;
-  doc["device_id"] = "device1"; // update with actual ID stored or configured
-  doc["current"] = simulatedCurrent;  // backend expects 'current' field
-  doc["voltage"] = voltage;
-  doc["power"] = power;
+  doc["device_id"] = "device1"; // Primary device representing the system (for Temp/Hum)
+  doc["current"] = 0;  // Backend does deterministic calculation based on relay states
+  doc["voltage"] = 220.0;
+  doc["power"] = 0;
   doc["temperature"] = temperature;
   doc["humidity"] = humidity;
 
@@ -91,7 +92,6 @@ void sendSensorData() {
 
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
-    // FastAPI route: POST /api/energy/data
     http.begin(String(backendUrl) + "/api/energy/data");
     http.addHeader("Content-Type", "application/json");
 
@@ -106,39 +106,34 @@ void sendSensorData() {
   }
 }
 
-void pollCommands() {
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.begin(String(backendUrl) + "/api/dashboard/device-command/device1");
-    int code = http.GET();
-    if (code == HTTP_CODE_OK) {
-      String resp = http.getString();
-      Serial.println("Command response: " + resp);
-      // parse JSON to set relays if necessary
-      StaticJsonDocument<200> doc;
-      DeserializationError err = deserializeJson(doc, resp);
-      if (!err) {
-        const char* status = doc["status"];
-        if (strcmp(status, "on") == 0) {
-          digitalWrite(RELAY1, HIGH);
-        } else {
-          digitalWrite(RELAY1, LOW);
-        }
-        // for multiple relays, extend payload with pin/command
+void pollNextDeviceCommand() {
+  if (WiFi.status() != WL_CONNECTED) return;
+  
+  String devices[4] = {"device1", "device2", "device3", "device4"};
+  int relayPins[4] = {RELAY1, RELAY2, RELAY3, RELAY4};
+  
+  String currentDeviceId = devices[currentPollIndex];
+  int currentRelayPin = relayPins[currentPollIndex];
+
+  HTTPClient http;
+  http.begin(String(backendUrl) + "/api/dashboard/device-command/" + currentDeviceId);
+  int code = http.GET();
+  
+  if (code == HTTP_CODE_OK) {
+    String resp = http.getString();
+    StaticJsonDocument<200> doc;
+    DeserializationError err = deserializeJson(doc, resp);
+    if (!err) {
+      const char* command = doc["command"]; // "ON" or "OFF"
+      if (strcmp(command, "ON") == 0) {
+        digitalWrite(currentRelayPin, HIGH);
+      } else {
+        digitalWrite(currentRelayPin, LOW);
       }
     }
-    http.end();
   }
-}
+  http.end();
 
-void controlRelaysByTemp() {
-  float temperature = dht.readTemperature();
-  if (isnan(temperature)) return;
-  // simple threshold logic
-  if (temperature > 30) {
-    digitalWrite(RELAY1, LOW);
-    digitalWrite(RELAY2, LOW);
-    digitalWrite(RELAY3, LOW);
-    digitalWrite(RELAY4, LOW);
-  }
+  // Cycle to next device for the next poll
+  currentPollIndex = (currentPollIndex + 1) % 4;
 }
