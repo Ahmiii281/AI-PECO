@@ -24,7 +24,7 @@ class UserResponse(BaseModel):
     email: str
     role: str
     energy_limit: float = 50.0
-    created_at: datetime = None
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

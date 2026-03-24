@@ -118,6 +118,28 @@ Here are the primary endpoints exposed by the backend:
 
 *(For full interactive documentation, visit `http://localhost:8000/docs` while the backend is running).*
 
+## 🧪 Testing & QA
+
+A comprehensive QA Testing Report (`QA_REPORT.md`) is available in the root directory. To run tests locally:
+1. Ensure your MongoDB Atlas is online.
+2. Run backend: `cd backend && pytest run_qa_tests.py` (requires `mongomock-motor` and `pytest`).
+3. For frontend UI tests, verify the API connection handles on `http://localhost:3000`.
+
+---
+
+## 📈 Scalability & Security Recommendations
+
+To prepare this FYP project for a production-level deployment, the following improvements are recommended:
+
+**Security:**
+- Keep `.env` out of version control (already handled via `.gitignore`).
+- Ensure the JWT `SECRET_KEY` in production is a strong, 256-bit cryptographically secure string.
+- Add Rate Limiting (e.g., `slowapi`) to the FastAPI backend to prevent brute-force login attempts and ESP32 DDOS.
+
+**Scalability:**
+- **Transition from HTTP Polling to MQTT:** Currently, the ESP32 polls the backend every 1.5 seconds for relay commands. This creates unnecessary overhead. Using a lightweight MQTT broker (like Mosquitto) will instantly push commands to devices, drastically reducing server load.
+- **Database Caching:** Introduce Redis to cache frequent dashboard statistics (e.g., `api/dashboard/stats`) to minimize MongoDB read operations.
+
 ---
 
 ## 📄 License

@@ -42,7 +42,6 @@ app.include_router(auth.router)
 app.include_router(devices.router)
 app.include_router(energy.router)
 app.include_router(dashboard.router)
-app.include_router(dashboard.router)
 
 from fastapi.responses import JSONResponse
 import traceback

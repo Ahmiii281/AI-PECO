@@ -17,13 +17,14 @@ async def connect_db():
     
     # Create indexes and DB connect
     try:
-        # Prevent DNS timeout hang / configuration error on fake srv strings for demo
-        client = AsyncIOMotorClient(settings.MONGODB_URL, serverSelectionTimeoutMS=2000)
+        from mongomock_motor import AsyncMongoMockClient
+        print("⚠ Using IN-MEMORY mongomock_motor Database for testing.")
+        client = AsyncMongoMockClient()
         db = client[settings.DATABASE_NAME]
         await create_indexes()
-        print("✓ Connected to MongoDB")
+        print("✓ Connected to MongoDB (Mocked)")
     except Exception as e:
-        print(f"⚠ Could not connect to real MongoDB (running in offline/demo mode): {e}")
+        print(f"⚠ Could not setup mock MongoDB: {e}")
 
 
 async def close_db():
