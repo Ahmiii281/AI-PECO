@@ -1,0 +1,39 @@
+{
+  "name": "ai-powered-energy-consumption-optimizer-(ai-peco)",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.6.8",
+    "marked": "^17.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-is": "^19.2.4",
+    "react-router-dom": "^7.13.1",
+    "recharts": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  },
+  "description": "AI-PECO is a web application built with React and TypeScript that helps users monitor and optimize their electricity consumption. The dashboard displays real-time power usage, device status, energy forecasts, and provides recommendations to reduce costs.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ahmiii281/AI-PECO.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ahmiii281/AI-PECO/issues"
+  },
+  "homepage": "https://github.com/Ahmiii281/AI-PECO#readme"
+}
