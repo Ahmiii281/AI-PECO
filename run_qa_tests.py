@@ -89,16 +89,10 @@ def run_tests():
 
     print("\n--- TEST RESULTS ---")
     passed = 0
-    for name, res in results:
-        success = res.status_code == 200 if name != "AI Module: Get Recommendation" else res.status_code in [200, 404, 500]
-        status = "PASS" if success else f"FAIL (Code {res.status_code})"
+    for name, success, code in results:
+        status = "PASS" if success else f"FAIL (Code {code})"
         if success: passed += 1
         print(f"{name.ljust(35)} | {status}")
-        if not success:
-            try:
-                print(f"   -> Error: {res.json()}")
-            except:
-                print(f"   -> Error text: {res.text}")
         
     print(f"\nFinal Verdict: {passed}/{len(results)} passed")
 

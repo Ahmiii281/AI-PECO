@@ -149,12 +149,12 @@ class EnergyService:
         forecasted_power = model.calculate_sma(recent_data)
         
         return {
-            "total_power": stats.get("total_power", 0),
-            "avg_temperature": round(stats.get("avg_temperature", 0), 2),
-            "avg_humidity": round(stats.get("avg_humidity", 0), 2),
+            "total_power": stats.get("total_power") or 0,
+            "avg_temperature": round(stats.get("avg_temperature") or 0, 2),
+            "avg_humidity": round(stats.get("avg_humidity") or 0, 2),
             "alert_count": alert_count,
             "device_count": len(devices),
-            "forecasted_power": round(forecasted_power, 2)
+            "forecasted_power": round(forecasted_power or 0, 2)
         }
 
     async def detect_anomalies(self, device_id: str, threshold_sigma: float = 2.0):
