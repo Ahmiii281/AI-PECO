@@ -1,131 +1,124 @@
-# AI-PECO - Energy Consumption Dashboard
+# AI-PECO - Energy Consumption Optimizer
 
-AI-PECO is a web application built with React and TypeScript that helps users monitor and optimize their electricity consumption. The dashboard displays real-time power usage, device status, energy forecasts, and provides recommendations to reduce costs.
-
----
-
-## Features
-
-- Real-time power consumption monitoring with live charts
-- Device management - view and track individual appliances
-- Energy consumption forecasts for the next 24 hours
-- Smart analysis tool that answers questions about usage patterns
-- Chat assistant for energy-saving tips and advice
-- Historical data viewing and reports
-- Dark and light theme support
-- Responsive design for all screen sizes
+AI-PECO is a full-stack IoT and AI-powered web application that helps users monitor, forecast, and optimize their electricity consumption. The system collects data from an ESP32 microcontroller, processes it using an AI-enhanced backend (Python/FastAPI), and visualizes it on a modern React dashboard.
 
 ---
 
-## Technology Stack
+## 🏗️ System Architecture
 
-- **React 19** - UI framework
-- **TypeScript** - Type safety
-- **Vite** - Build tool and dev server
-- **Recharts** - Data visualization
-- **Tailwind CSS** - Styling
-- **Marked** - Markdown parsing
-
----
-
-## Project Structure
-
-```
-AIPECO/
-├── components/       # React components (charts, views, UI elements)
-├── contexts/        # React context providers (theme)
-├── hooks/           # Custom React hooks (data, chat, notifications)
-├── services/        # API services (for future backend integration)
-├── App.tsx          # Main application component
-├── types.ts         # TypeScript type definitions
-└── vite.config.ts   # Vite configuration
+```text
++-------------------+        +----------------------+        +-------------------+
+|     ESP32 IoT    |        |  AI-Backend (Python) |        | Frontend (React)  |
+|                  |  HTTP  |                      |  HTTP  |                   |
+| - DHT22 Sensor   |------->| - FastAPI Server     |<-------| - React 19        |
+| - Relays (4x)    |        | - ML Predictions     |        | - Vite & Tailwind |
+| - WiFi Client    |<-------| - JWT Auth & Control |        | - Recharts        |
++-------------------+        +----------+-----------+        +-------------------+
+                                        |
+                                        v
+                               +----------------+
+                               |    Database    |
+                               | (MongoDB Atlas)|
+                               +----------------+
 ```
 
+### Folder Structure
+- `/frontend` - React application (Vite, TypeScript, Tailwind)
+- `/backend` - Python FastAPI application serving both general APIs and AI predictions
+- `/esp32` - Arduino code for ESP32 microcontroller
+- `/docs` - Additional setup documentation
+
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
-### Requirements
+### Prerequisites
 
-- Node.js 18 or higher
-- npm 9 or higher
+- Node.js 18+ and npm
+- Python 3.9+
+- Docker & Docker Compose (optional but recommended)
+- MongoDB account (or local MongoDB container)
 
-### Installation
+### 1. Installation
 
-1. Clone the repository
-2. Install dependencies:
+Clone the repository:
+```bash
+git clone https://github.com/Ahmiii281/AI-PECO.git
+cd AI-PECO
+```
+
+### 2. Configuration Setup
+
+Copy the example environment files and update them:
+
+**Backend:**
+```bash
+cp backend/.env.example backend/.env
+```
+Update `backend/.env` with your `MONGODB_URL` and `SECRET_KEY`.
+
+**Frontend:**
+```bash
+cp frontend/.env.example frontend/.env.local
+```
+*(By default, the frontend connects to `http://localhost:8000/api` which matches the local backend).*
+
+**ESP32:**
+Open `esp32/AIPECO.ino` and update the `backendUrl` variable to your PC's local IP address (e.g., `http://192.168.1.100:8000`).
+
+---
+
+## ⚙️ How to Run Locally
+
+### Option A: Using Docker (Recommended)
+
+Docker Compose will automatically build and start the Frontend, Backend, and a local MongoDB instance.
+
+```bash
+docker-compose up --build
+```
+- Frontend will be available at: `http://localhost:3000`
+- Backend API & Docs at: `http://localhost:8000/docs`
+
+### Option B: Using NPM Scripts
+
+If you don't have Docker, you can run services directly on your host machine.
+
+1. Install dependencies across all modules:
    ```bash
-   npm install
+   npm run install:all
    ```
 
-3. Start the development server:
+2. Start the development servers simultaneously:
    ```bash
    npm run dev
    ```
-
-4. Open your browser and navigate to the URL shown in the terminal (usually `http://localhost:5173`)
-
-### Build for Production
-
-```bash
-npm run build
-```
-
-This creates an optimized production build in the `dist/` folder.
-
-### Preview Production Build
-
-```bash
-npm run preview
-```
+   *(Note: This requires Python to be accessible globally or from an activated virtual environment. Windows users may need to manually activate their venv in the backend folder first).*
 
 ---
 
-## How It Works
+## 🔗 API Endpoints Summary
 
-The application uses mock data to simulate real-time energy monitoring:
+Here are the primary endpoints exposed by the backend:
 
-- **Data Generation**: The `useMockData` hook generates realistic power consumption data based on time-of-day patterns
-- **Device Simulation**: Device statuses and power levels are updated automatically to simulate real devices
-- **Chat Assistant**: A rule-based chatbot provides energy-saving advice based on user questions
-- **Analysis Engine**: The Smart Analysis component processes consumption data to answer user queries
+**Authentication**
+- `POST /api/auth/register` - Create user account
+- `POST /api/auth/login` - Login and get JWT token
+- `GET /api/auth/me` - Get current user profile
 
----
+**IoT & Devices**
+- `POST /api/energy/data` - Receive sensor data from ESP32
+- `GET /api/dashboard/device-command/{device_id}` - ESP32 polls for relay commands
+- `GET /api/devices` - List all registered devices
+- `POST /api/dashboard/relay/{device_id}` - Turn device relay ON/OFF from frontend
 
-## Available Scripts
+**Analytics & AI**
+- `GET /api/dashboard/stats` - Get aggregate system stats
+- `GET /api/dashboard/recommendation/{device_id}` - Read AI energy optimization insights
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Create production build |
-| `npm run preview` | Preview the production build locally |
-
----
-
-## Customization
-
-- **Connect Real Data**: Replace the mock data in `useMockData.ts` with API calls to your backend
-- **Modify Chat Responses**: Update the response logic in `useChatAssistant.ts` to change the assistant's behavior
-- **Add New Features**: Extend the Smart Analysis component or add new views in the `components/` folder
+*(For full interactive documentation, visit `http://localhost:8000/docs` while the backend is running).*
 
 ---
 
-## License
-
+## 📄 License
 This project is licensed under the MIT License.
-
----
-
-## Author
-
-Final Year Project - Software Engineering  
-University of Mianwali  
-2025
-
----
-
-## Notes
-
-- Currently uses mock data for demonstration purposes
-- All analysis and recommendations are generated locally (no external AI services)
-- The application is designed to be easily extended with real hardware integration
