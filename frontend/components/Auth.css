@@ -3,7 +3,7 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #E2E1DF;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -18,7 +18,7 @@
 
 .auth-card h1 {
   text-align: center;
-  color: #667eea;
+  color: #5C341E;
   margin-bottom: 0.5rem;
   font-size: 2rem;
   font-weight: 700;
@@ -54,13 +54,13 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #5C341E;
 }
 
 button {
   width: 100%;
   padding: 0.75rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #5C341E;
   color: white;
   border: none;
   border-radius: 6px;
@@ -72,7 +72,7 @@ button {
 
 button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 10px 25px rgba(92, 52, 30, 0.4);
 }
 
 button:disabled {
@@ -96,7 +96,7 @@ button:disabled {
 }
 
 .auth-link a {
-  color: #667eea;
+  color: #5C341E;
   text-decoration: none;
   font-weight: 600;
 }

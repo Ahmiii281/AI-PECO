@@ -92,8 +92,8 @@
 }
 
 .device-card.selected {
-  border-color: #667eea;
-  background: #f0f4ff;
+  border-color: #5C341E;
+  background: #D0C1A9;
 }
 
 .device-header {
@@ -255,7 +255,7 @@
 
 .resolve-btn {
   padding: 0.5rem 1rem;
-  background-color: #667eea;
+  background-color: #5C341E;
   color: white;
   border: none;
   border-radius: 6px;
@@ -266,7 +266,7 @@
 }
 
 .resolve-btn:hover {
-  background-color: #764ba2;
+  background-color: #4A2A18;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(92, 52, 30, 0.4);
 }

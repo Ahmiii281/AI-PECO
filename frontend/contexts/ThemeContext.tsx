@@ -11,13 +11,12 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('dark'); // Default to dark
+  const [theme, setTheme] = useState<Theme>('light'); // Default to light
 
   useEffect(() => {
-    // Set initial theme from localStorage or system preference
+    // Set initial theme from localStorage safely
     const storedTheme = localStorage.getItem('theme') as Theme | null;
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = storedTheme || (prefersDark ? 'dark' : 'light');
+    const initialTheme = storedTheme || 'light';
     setTheme(initialTheme);
   }, []);
 

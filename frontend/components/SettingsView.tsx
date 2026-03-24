@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { BellIcon, CogIcon, ShieldExclamationIcon, TrashIcon, UserCircleIcon } from './Icons';
-import ThemeToggle from './ThemeToggle';
 
 const SettingsCard: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, icon, children }) => (
   <div className="bg-white dark:bg-gray-700/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-transparent">
@@ -272,13 +271,7 @@ const SettingsView: React.FC = () => {
         <ToggleSwitch id="weekly-summary" label="Weekly Summary Report" enabled={notifications.weeklySummary} setEnabled={(val) => setNotifications(p => ({...p, weeklySummary: val}))} />
       </SettingsCard>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <SettingsCard title="Appearance" icon={<CogIcon />}>
-             <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Interface Theme</p>
-                <ThemeToggle />
-            </div>
-        </SettingsCard>
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
 
         <SettingsCard title="Data & Privacy" icon={<ShieldExclamationIcon />}>
             <div className="flex flex-col sm:flex-row gap-3">

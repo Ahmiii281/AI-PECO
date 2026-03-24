@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-import ThemeToggle from './ThemeToggle';
 import { MenuIcon } from './Icons';
 import { healthAPI } from '../services/api';
 
@@ -71,7 +70,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             </span>
           </div>
         </div>
-        <ThemeToggle />
       </div>
     </header>
   );

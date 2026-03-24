@@ -17,12 +17,10 @@ const EnergyChart: React.FC<EnergyChartProps> = ({ liveData, forecastData }) => 
     forecast: forecastData[idx]?.forecast
   }));
   
-  const axisColor = theme === 'dark' ? '#9ca3af' : '#6b7280';
-  const gridLineColor = theme === 'dark' ? '#444444' : '#e5e7eb';
-  const tooltipBg = theme === 'dark' 
-    ? { backgroundColor: '#1e1e1e', border: '1px solid #444' }
-    : { backgroundColor: '#ffffff', border: '1px solid #ccc' };
-  const textColor = theme === 'dark' ? { color: '#e5e7eb' } : { color: '#374151' };
+  const axisColor = '#2F180B';
+  const gridLineColor = '#C0B39E';
+  const tooltipBg = { backgroundColor: '#FFFFFF', border: '1px solid #D0C1A9' };
+  const textColor = { color: '#2F180B' };
 
 
   return (
@@ -32,8 +30,8 @@ const EnergyChart: React.FC<EnergyChartProps> = ({ liveData, forecastData }) => 
         <AreaChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 40 }}>
           <defs>
             <linearGradient id="powerGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#34d399" stopOpacity={0.8}/>
-              <stop offset="95%" stopColor="#34d399" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#5C341E" stopOpacity={0.8}/>
+              <stop offset="95%" stopColor="#5C341E" stopOpacity={0}/>
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke={gridLineColor} />
@@ -52,8 +50,8 @@ const EnergyChart: React.FC<EnergyChartProps> = ({ liveData, forecastData }) => 
             labelStyle={textColor}
           />
           <Legend wrapperStyle={textColor} />
-          <Area type="monotone" dataKey="power" name="Live Usage" stroke="#34d399" fillOpacity={1} fill="url(#powerGradient)" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="forecast" name="Forecast" stroke="#60a5fa" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+          <Area type="monotone" dataKey="power" name="Live Usage" stroke="#5C341E" fillOpacity={1} fill="url(#powerGradient)" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="forecast" name="Forecast" stroke="#D0C1A9" strokeWidth={2} strokeDasharray="5 5" dot={false} />
         </AreaChart>
       </ResponsiveContainer>
     </div>
