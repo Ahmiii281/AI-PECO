@@ -7,7 +7,7 @@
 const char* ssid = "Infinix NOTE";
 const char* password = "aipeco123";
 
-const char* backendUrl = "http://your.backend.url"; // replace with your deployed backend or localhost
+const char* backendUrl = "http://192.168.X.X:8000"; // REPLACE '192.168.X.X' with your PC's local IP address where the backend is running
 
 // pins
 #define DHTPIN 26
