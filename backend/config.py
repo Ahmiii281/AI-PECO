@@ -21,8 +21,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # CORS
-    CORS_ORIGINS: list = ["*"]  # For testing: allow all origins to fix "Failed to fetch" on Vercel. 
-                               # IMPORTANT: Change this to your specific Vercel URL in production.
+    CORS_ORIGINS: list = ["*", "https://ai-peco.vercel.app"]  # Explicitly added Vercel URL
+                                                               # Allow all for debugging "Failed to fetch"
+    
     
     # ESP32 / device API
     ESP32_POLLING_INTERVAL: int = 5  # seconds

@@ -19,7 +19,7 @@ class AuthService:
         Register a new user
         """
         # --- DEMO BYPASS ---
-        if user_data.email == "admin@aipeco.com":
+        if user_data.email in ["admin@aipeco.com", "demo@admin.com"]:
             return {
                 "_id": "000000000000000000000000",
                 "name": "Demo Admin",
@@ -56,7 +56,10 @@ class AuthService:
         Authenticate user and return access token
         """
         # --- DEMO BYPASS ---
-        if email == "admin@aipeco.com" and password == "admin123":
+        is_admin_bypass = email == "admin@aipeco.com" and password == "admin123"
+        is_demo_bypass = email == "demo@admin.com" and password == "password123"
+        
+        if is_admin_bypass or is_demo_bypass:
             access_token = create_access_token(data={"sub": "000000000000000000000000"})
             return {
                 "access_token": access_token,
