@@ -36,10 +36,9 @@
               800: '#006619',
               900: '#00330d',
             },
-            indigo: {
-              500: '#00FF41',
-              600: '#00cc33',
-            }
+          boxShadow: {
+            'neon-green': '0 0 5px #00FF41, 0 0 20px rgba(0, 255, 65, 0.2)',
+            'neon-green-lg': '0 0 10px #00FF41, 0 0 40px rgba(0, 255, 65, 0.4)',
           },
           keyframes: {
             'fade-in-scale': {
@@ -58,7 +57,7 @@
   <link rel="stylesheet" href="/index.css">
 </head>
 
-<body class="bg-[#050505] text-white font-sans">
+<body class="bg-[#050505] text-white font-sans selection:bg-green-500 selection:text-black">
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>

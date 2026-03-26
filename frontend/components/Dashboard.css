@@ -34,7 +34,7 @@
 
 .stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 255, 65, 0.15);
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
   border-color: #00FF41;
 }
 
@@ -122,6 +122,7 @@
   background-color: #003B00;
   color: #00FF41;
   border: 1px solid #00FF41;
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
 }
 
 .status.offline {
@@ -156,11 +157,13 @@
   background-color: #003B00;
   color: #00FF41;
   border: 1px solid #00FF41;
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
 }
 
 .relay-btn.on:hover {
   background-color: #00FF41;
   color: black;
+  box-shadow: 0 0 20px #00FF41;
 }
 
 .relay-btn.off {
