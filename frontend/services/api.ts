@@ -105,6 +105,12 @@ export const dashboardAPI = {
     apiCall(`/api/dashboard/device-command/${deviceId}`, "GET"),
 };
 
+// ==================== Billing ====================
+export const billingAPI = {
+  getCategories: () => apiCall("/api/billing/categories"),
+  estimate: (data: any) => apiCall("/api/billing/estimate", "POST", data),
+};
+
 // ==================== Health Check ====================
 export const healthAPI = {
   check: () =>

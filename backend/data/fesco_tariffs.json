@@ -1,0 +1,67 @@
+{
+  "A-1": {
+    "name": "Residential",
+    "description": "For residential consumers",
+    "min_monthly_charges": {
+      "single_phase": 75,
+      "three_phase": 150
+    },
+    "sub_categories": {
+      "protected": {
+        "slabs": [
+          {"min": 1, "max": 50, "rate": 10.00},
+          {"min": 51, "max": 100, "rate": 15.00}
+        ],
+        "fixed_charges": 0
+      },
+      "unprotected": {
+        "slabs": [
+          {"min": 1, "max": 100, "rate": 20.00},
+          {"min": 101, "max": 200, "rate": 27.50},
+          {"min": 201, "max": 300, "rate": 32.00},
+          {"min": 301, "max": 700, "rate": 42.00},
+          {"min": 701, "max": null, "rate": 52.00}
+        ],
+        "fixed_charges": 0
+      },
+      "tou": {
+        "peak_rate": 55.00,
+        "off_peak_rate": 38.00,
+        "fixed_charges_per_kw": 400
+      }
+    }
+  },
+  "A-2": {
+    "name": "Commercial",
+    "description": "For commercial establishmets",
+    "slabs": [
+      {"min": 1, "max": null, "rate": 45.00}
+    ],
+    "fixed_charges": 500,
+    "tou": {
+        "peak_rate": 60.00,
+        "off_peak_rate": 42.00,
+        "fixed_charges_per_kw": 500
+    }
+  },
+  "A-3": {
+    "name": "General Services",
+    "description": "Approved religious/charitable places",
+    "slabs": [
+      {"min": 1, "max": null, "rate": 38.00}
+    ],
+    "fixed_charges": 300
+  },
+  "B": {
+    "name": "Industrial",
+    "description": "Industrial establishments",
+    "slabs": [
+       {"min": 1, "max": null, "rate": 35.00}
+    ],
+    "tou": {
+      "peak_rate": 50.00,
+      "off_peak_rate": 35.00,
+      "fixed_charges_per_kw": 600
+    }
+  }
+}

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ChartBarIcon, ChipIcon, DocumentReportIcon, CogIcon, VoiceChatIcon, XIcon, SunIcon } from './Icons';
+import { ChartBarIcon, ChipIcon, DocumentReportIcon, CogIcon, VoiceChatIcon, XIcon, SunIcon, CalculatorIcon } from './Icons';
 import { View } from '../types';
 
 interface SidebarProps {
@@ -17,6 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
     { name: 'Devices', view: 'devices', icon: <ChipIcon /> },
     { name: 'Sensor (DHT)', view: 'dht', icon: <SunIcon /> },
     { name: 'Reports', view: 'reports', icon: <DocumentReportIcon /> },
+    { name: 'Bill Estimation', view: 'billing', icon: <CalculatorIcon /> },
     { name: 'Settings', view: 'settings', icon: <CogIcon /> },
   ];
 

@@ -5,7 +5,7 @@ export enum DeviceStatus {
   Idle = 'Idle',
 }
 
-export type View = 'dashboard' | 'chatbot' | 'devices' | 'dht' | 'reports' | 'settings';
+export type View = 'dashboard' | 'chatbot' | 'devices' | 'dht' | 'reports' | 'settings' | 'billing';
 
 export interface Device {
   id: string;

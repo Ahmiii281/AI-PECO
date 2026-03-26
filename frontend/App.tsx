@@ -12,6 +12,7 @@ import DhtSerialView from './components/DhtSerialView';
 import Login from './components/Login';
 import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
+import BillingView from './components/BillingView';
 import { View } from './types';
 
 const MainApp: React.FC = () => {
@@ -32,6 +33,8 @@ const MainApp: React.FC = () => {
         return <ReportsView />;
       case 'settings':
         return <SettingsView />;
+      case 'billing':
+        return <BillingView />;
       default:
         return <DashboardView />;
     }

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import connect_db, close_db
-from routes import auth, devices, energy, dashboard
+from routes import auth, devices, energy, dashboard, billing
 from config import settings
 
 # Lifespan management
@@ -42,6 +42,7 @@ app.include_router(auth.router)
 app.include_router(devices.router)
 app.include_router(energy.router)
 app.include_router(dashboard.router)
+app.include_router(billing.router)
 
 from fastapi.responses import JSONResponse
 import traceback
