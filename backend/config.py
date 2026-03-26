@@ -21,11 +21,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # CORS
-    CORS_ORIGINS: list = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "https://aipeco-frontend.vercel.app",
-    ]
+    CORS_ORIGINS: list = ["*"]  # For testing: allow all origins to fix "Failed to fetch" on Vercel. 
+                               # IMPORTANT: Change this to your specific Vercel URL in production.
     
     # ESP32 / device API
     ESP32_POLLING_INTERVAL: int = 5  # seconds
