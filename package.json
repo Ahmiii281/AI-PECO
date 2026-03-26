@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "AI-Powered Energy Consumption Optimizer",
   "scripts": {
+    "build": "cd frontend && npm install && npm run build",
     "dev": "npm i -g concurrently && concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && python main.py",
