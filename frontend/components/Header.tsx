@@ -29,7 +29,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     };
   }, []);
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-md p-4 flex justify-between items-center z-10 border-b border-gray-200 dark:border-gray-700">
+    <header className="bg-[#050505] shadow-md p-4 flex justify-between items-center z-10 border-b border-[#1A1A1A]">
       <div className="flex items-center">
         <button
           onClick={onMenuClick}
@@ -40,14 +40,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           <MenuIcon />
         </button>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">AI-PECO Dashboard</h1>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">AI-Powered Energy Consumption Optimizer</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">AI-PECO Dashboard</h1>
+          <p className="text-xs sm:text-sm text-gray-400">AI-Powered Energy Consumption Optimizer</p>
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="hidden sm:flex flex-col items-end text-right text-sm text-gray-500 dark:text-gray-400 space-y-1">
+        <div className="hidden sm:flex flex-col items-end text-right text-sm text-gray-400 space-y-1">
           <div>
-            <p>University of Mianwali</p>
+            <p className="text-green-500 font-semibold">University of Mianwali</p>
             <p>FYP 2025</p>
           </div>
           <div className="flex items-center space-x-2 text-xs">

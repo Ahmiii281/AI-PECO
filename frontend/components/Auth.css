@@ -3,22 +3,23 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #E2E1DF;
+  background-color: #050505;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .auth-card {
-  background: white;
+  background: #121212;
   padding: 2.5rem;
   border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
   width: 100%;
   max-width: 400px;
+  border: 1px solid #1A1A1A;
 }
 
 .auth-card h1 {
   text-align: center;
-  color: #5C341E;
+  color: #00FF41;
   margin-bottom: 0.5rem;
   font-size: 2rem;
   font-weight: 700;
@@ -26,7 +27,7 @@
 
 .auth-card h2 {
   text-align: center;
-  color: #333;
+  color: #b0b0b0;
   margin-bottom: 2rem;
   font-weight: 500;
 }
@@ -38,31 +39,33 @@
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: #e0e0e0;
   font-weight: 500;
 }
 
 .form-group input {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #ddd;
+  background: #1A1A1A;
+  border: 2px solid #333;
   border-radius: 6px;
   font-size: 1rem;
+  color: white;
   transition: border-color 0.3s;
   box-sizing: border-box;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #5C341E;
+  border-color: #00FF41;
 }
 
 button {
   width: 100%;
   padding: 0.75rem;
-  background-color: #5C341E;
-  color: white;
-  border: none;
+  background-color: #003B00;
+  color: #00FF41;
+  border: 1px solid #00FF41;
   border-radius: 6px;
   font-size: 1rem;
   font-weight: 600;
@@ -72,7 +75,9 @@ button {
 
 button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(92, 52, 30, 0.4);
+  background-color: #00FF41;
+  color: black;
+  box-shadow: 0 10px 25px rgba(0, 255, 65, 0.4);
 }
 
 button:disabled {
@@ -96,7 +101,7 @@ button:disabled {
 }
 
 .auth-link a {
-  color: #5C341E;
+  color: #00FF41;
   text-decoration: none;
   font-weight: 600;
 }

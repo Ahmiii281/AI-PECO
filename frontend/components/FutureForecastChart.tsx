@@ -20,10 +20,10 @@ interface FutureForecastChartProps {
 const FutureForecastChart: React.FC<FutureForecastChartProps> = ({ data, className = '' }) => {
   const { theme } = useTheme();
 
-  const tickColor = '#2F180B';
-  const gridColor = '#C0B39E';
-  const tooltipStyle = { backgroundColor: '#FFFFFF', border: '1px solid #D0C1A9' };
-  const labelStyle = { color: '#2F180B' };
+  const tickColor = '#A0A0A0';
+  const gridColor = '#2A2A2A';
+  const tooltipStyle = { backgroundColor: '#121212', border: '1px solid #00FF41', color: '#FFFFFF' };
+  const labelStyle = { color: '#e0e0e0' };
 
   return (
     <div
@@ -34,8 +34,8 @@ const FutureForecastChart: React.FC<FutureForecastChartProps> = ({ data, classNa
         <AreaChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 40 }}>
           <defs>
             <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#5C341E" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#5C341E" stopOpacity={0} />
+              <stop offset="5%" stopColor="#00FF41" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#00FF41" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
@@ -65,7 +65,7 @@ const FutureForecastChart: React.FC<FutureForecastChartProps> = ({ data, classNa
             type="monotone"
             dataKey="forecast"
             name="Forecast"
-            stroke="#5C341E"
+            stroke="#00FF41"
             fillOpacity={1}
             fill="url(#colorForecast)"
             strokeWidth={2}

@@ -37,12 +37,12 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
       ></div>
 
       {/* Sidebar */}
-      <aside className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 text-gray-800 dark:text-white flex-col z-30 transition-transform duration-300 ease-in-out md:flex md:static md:translate-x-0 border-r border-gray-200 dark:border-gray-700 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-3xl font-bold text-green-600 dark:text-green-400">AI-PECO</h2>
+      <aside className={`fixed top-0 left-0 h-full w-64 bg-[#121212] text-white flex-col z-30 transition-transform duration-300 ease-in-out md:flex md:static md:translate-x-0 border-r border-[#1A1A1A] ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between p-6 border-b border-[#1A1A1A]">
+          <h2 className="text-3xl font-bold text-green-500">AI-PECO</h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="md:hidden text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+            className="md:hidden text-gray-400 hover:text-white"
             aria-label="Close sidebar"
           >
             <span className="sr-only">Close sidebar</span>
@@ -56,8 +56,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
               onClick={() => handleItemClick(item.view)}
               className={`w-full flex items-center px-4 py-3 text-lg rounded-lg transition-colors duration-200 ${
                 activeView === item.view
-                  ? 'bg-green-500 text-white'
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                  ? 'bg-green-500 text-black font-bold'
+                  : 'text-gray-400 hover:bg-[#1A1A1A] hover:text-white'
               }`}
             >
               {item.icon}
@@ -65,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
             </button>
           ))}
         </nav>
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 text-center text-xs text-gray-500 dark:text-gray-500">
+        <div className="p-4 border-t border-[#1A1A1A] text-center text-xs text-gray-500">
           <p>&copy; 2025 AI-PECO Team</p>
           <p>All Rights Reserved</p>
         </div>

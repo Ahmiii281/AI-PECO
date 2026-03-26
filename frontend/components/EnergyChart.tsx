@@ -17,10 +17,10 @@ const EnergyChart: React.FC<EnergyChartProps> = ({ liveData, forecastData }) => 
     forecast: forecastData[idx]?.forecast
   }));
   
-  const axisColor = '#2F180B';
-  const gridLineColor = '#C0B39E';
-  const tooltipBg = { backgroundColor: '#FFFFFF', border: '1px solid #D0C1A9' };
-  const textColor = { color: '#2F180B' };
+  const axisColor = '#A0A0A0';
+  const gridLineColor = '#2A2A2A';
+  const tooltipBg = { backgroundColor: '#121212', border: '1px solid #00FF41', color: '#FFFFFF' };
+  const textColor = { color: '#e0e0e0' };
 
 
   return (
@@ -30,8 +30,8 @@ const EnergyChart: React.FC<EnergyChartProps> = ({ liveData, forecastData }) => 
         <AreaChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 40 }}>
           <defs>
             <linearGradient id="powerGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#5C341E" stopOpacity={0.8}/>
-              <stop offset="95%" stopColor="#5C341E" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#00FF41" stopOpacity={0.8}/>
+              <stop offset="95%" stopColor="#00FF41" stopOpacity={0}/>
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke={gridLineColor} />
@@ -50,8 +50,8 @@ const EnergyChart: React.FC<EnergyChartProps> = ({ liveData, forecastData }) => 
             labelStyle={textColor}
           />
           <Legend wrapperStyle={textColor} />
-          <Area type="monotone" dataKey="power" name="Live Usage" stroke="#5C341E" fillOpacity={1} fill="url(#powerGradient)" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="forecast" name="Forecast" stroke="#D0C1A9" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+          <Area type="monotone" dataKey="power" name="Live Usage" stroke="#00FF41" fillOpacity={1} fill="url(#powerGradient)" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="forecast" name="Forecast" stroke="#008F11" strokeWidth={2} strokeDasharray="5 5" dot={false} />
         </AreaChart>
       </ResponsiveContainer>
     </div>
