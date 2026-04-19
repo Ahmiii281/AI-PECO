@@ -10,3 +10,5 @@ pydantic-settings==2.1.0
 python-dotenv==1.0.0
 httpx==0.25.2
 aiofiles==23.2.1
+scikit-learn>=1.0.0
+numpy>=1.20.0

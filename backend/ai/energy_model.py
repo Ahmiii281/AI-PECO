@@ -2,12 +2,14 @@
 AI/ML Energy Consumption Model
 Features:
 - Simple Moving Average for power forecasting
-- Anomaly detection using statistical methods
+- Anomaly detection using IsolationForest
 - Smart recommendations
 """
 import statistics
 from typing import List, Dict, Tuple
 from datetime import datetime
+import numpy as np
+from sklearn.ensemble import IsolationForest
 
 
 class EnergyModel:
@@ -47,8 +49,7 @@ class EnergyModel:
 
     def detect_anomalies(self, energy_readings: List[Dict]) -> Tuple[List[Dict], float, float]:
         """
-        Detect anomalous power consumption patterns
-        Using statistical method: if power > mean + 2*stddev
+        Detect anomalous power consumption patterns using IsolationForest.
         
         Args:
             energy_readings: List of energy readings
@@ -56,26 +57,46 @@ class EnergyModel:
         Returns:
             (anomalies_list, mean_power, std_dev)
         """
-        if len(energy_readings) < 2:
-            return [], 0, 0
+        if not energy_readings or len(energy_readings) < 2:
+            return [], 0.0, 0.0
+
+        # Sort readings by timestamp if available
+        if all("timestamp" in r for r in energy_readings):
+            energy_readings = sorted(
+                energy_readings, 
+                key=lambda x: datetime.fromisoformat(x["timestamp"].replace("Z", "+00:00")) 
+                if isinstance(x["timestamp"], str) else x["timestamp"]
+            )
 
         powers = [r["power"] for r in energy_readings]
 
+        # Calculate basic stats
         try:
             mean_power = statistics.mean(powers)
-            std_dev = statistics.stdev(powers) if len(powers) > 1 else 0
+            std_dev = statistics.stdev(powers) if len(powers) > 1 else 0.0
         except (ValueError, statistics.StatisticsError):
-            return [], 0, 0
+            return [], 0.0, 0.0
+
+        # If all powers are the same, or very small variance, no anomalies
+        if std_dev < 1e-5:
+            return [], mean_power, std_dev
 
         anomalies = []
-        threshold = mean_power + (self.anomaly_threshold_sigma * std_dev)
+        
+        # Prepare data for IsolationForest
+        X = np.array(powers).reshape(-1, 1)
+        
+        # Initialize and fit the model
+        model = IsolationForest(contamination=0.1, random_state=42)
+        preds = model.fit_predict(X)
+        scores = model.decision_function(X) # lower score -> more anomalous
 
-        for reading in energy_readings:
-            if reading["power"] > threshold:
+        for i, reading in enumerate(energy_readings):
+            if preds[i] == -1 and reading["power"] > mean_power:
                 anomalies.append({
                     **reading,
-                    "anomaly_score": (reading["power"] - mean_power) / (std_dev + 0.001),
-                    "threshold": threshold
+                    "anomaly_score": float(abs(scores[i])),
+                    "threshold": mean_power + self.anomaly_threshold_sigma * std_dev
                 })
 
         return anomalies, mean_power, std_dev

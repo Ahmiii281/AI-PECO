@@ -72,7 +72,7 @@ def run_tests():
         "power": 550.0,
         "temperature": 25.0,
         "humidity": 50.0
-    })
+    }, headers={"X-API-Key": "test_key"})
     results.append(("ESP32: Post Sensor Data", res.status_code == 200, res.status_code))
     
     # 8. Test ESP32 Command Polling
