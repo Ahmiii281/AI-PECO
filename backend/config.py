@@ -11,19 +11,17 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     
-    # Database
-    MONGODB_URL: str = "mongodb+srv://username:password@cluster.mongodb.net"
+    # Database (No hardcoded credentials)
+    MONGODB_URL: str
     DATABASE_NAME: str = "aipeco_db"
     
-    # JWT
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    # JWT (No hardcoded secret)
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
-    # CORS
-    CORS_ORIGINS: list = ["*", "https://ai-peco.vercel.app"]  # Explicitly added Vercel URL
-                                                               # Allow all for debugging "Failed to fetch"
-    
+    # CORS (Strict production domains)
+    CORS_ORIGINS: list[str] = ["https://ai-peco.vercel.app"]
     
     # ESP32 / device API
     ESP32_POLLING_INTERVAL: int = 5  # seconds
