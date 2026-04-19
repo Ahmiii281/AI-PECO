@@ -3,6 +3,7 @@ Dashboard and relay control routes
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from database import get_db
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from services.device_service import DeviceService
 from services.energy_service import EnergyService
 from ai.energy_model import EnergyModel
@@ -18,7 +19,6 @@ async def get_dashboard_stats(user_id: str = Depends(get_current_user)):
     """
     Get dashboard statistics
     """
-    db = get_db()
     energy_service = EnergyService(db)
 
     try:
@@ -37,7 +37,6 @@ async def control_relay(
     """
     Control relay (turn ON/OFF)
     """
-    db = get_db()
     device_service = DeviceService(db)
 
     try:
@@ -65,7 +64,6 @@ async def get_recommendation(
     """
     Get AI recommendation for device
     """
-    db = get_db()
     device_service = DeviceService(db)
     energy_service = EnergyService(db)
 
@@ -89,7 +87,10 @@ async def get_recommendation(
             anomaly_threshold_sigma=settings.ANOMALY_THRESHOLD_SIGMA
         )
 
-        anomalies, mean_power, std_dev = model.detect_anomalies(recent_data)
+        detection_result = model.detect_anomalies(recent_data)
+        anomalies = detection_result.get("anomalies", [])
+        mean_power = detection_result.get("mean_power", 0.0)
+        
         recommendation = model.generate_recommendation(anomalies, mean_power)
 
         daily_cost = model.forecast_daily_cost(mean_power)
@@ -111,7 +112,6 @@ async def get_device_command(device_id: str):
     """
     Get relay command for device (polled by ESP32)
     """
-    db = get_db()
     device_service = DeviceService(db)
 
     try:

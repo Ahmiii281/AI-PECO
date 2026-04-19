@@ -3,6 +3,7 @@ Energy data and analytics routes
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from database import get_db
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from services.energy_service import EnergyService
 from services.device_service import DeviceService
 from ai.energy_model import EnergyModel
@@ -40,7 +41,6 @@ async def save_energy_data(
                 detail="Invalid or missing device API key",
             )
 
-    db = get_db()
     energy_service = EnergyService(db)
     device_service = DeviceService(db)
 
@@ -61,7 +61,9 @@ async def save_energy_data(
             anomaly_threshold_sigma=settings.ANOMALY_THRESHOLD_SIGMA
         )
 
-        anomalies, mean_power, std_dev = model.detect_anomalies(recent_data)
+        detection_result = model.detect_anomalies(recent_data)
+        anomalies = detection_result.get("anomalies", [])
+        mean_power = detection_result.get("mean_power", 0.0)
 
         if anomalies and settings.ENABLE_AUTO_ALERTS:
             # Get device owner
@@ -98,7 +100,6 @@ async def get_device_energy_data(
     """
     Get energy data for a device (last N hours)
     """
-    db = get_db()
     energy_service = EnergyService(db)
     device_service = DeviceService(db)
 
@@ -135,7 +136,6 @@ async def create_alert(
     """
     Manually create an alert
     """
-    db = get_db()
     energy_service = EnergyService(db)
 
     try:
@@ -163,7 +163,6 @@ async def get_alerts(
     """
     Get user alerts
     """
-    db = get_db()
     energy_service = EnergyService(db)
 
     alerts = await energy_service.get_user_alerts(user_id, resolved)
@@ -188,7 +187,6 @@ async def resolve_alert(
     """
     Mark alert as resolved
     """
-    db = get_db()
     energy_service = EnergyService(db)
 
     try:

@@ -159,7 +159,7 @@ class EnergyService:
 
     async def detect_anomalies(self, device_id: str, threshold_sigma: float = 2.0):
         """
-        Detect anomalies in power consumption
+        Detect anomalies in power consumption using centralized AI model
         """
         # Get last 24 hours of data
         since = datetime.utcnow() - timedelta(hours=24)
@@ -172,27 +172,18 @@ class EnergyService:
         if len(data) < 3:
             return []
 
-        # Calculate mean and std dev of power
-        powers = [d["power"] for d in data]
-        mean = statistics.mean(powers)
-        std_dev = statistics.stdev(powers) if len(powers) > 1 else 0
-
-        # Detect anomalies
-        anomalies = []
-        threshold = mean + (threshold_sigma * std_dev)
-
-        for reading in data:
-            is_anomaly = reading["power"] > threshold
-            reading["is_anomaly"] = is_anomaly
-
-            # Update in database
-            await self.energy_collection.update_one(
-                {"_id": reading["_id"]},
-                {"$set": {"is_anomaly": is_anomaly}}
-            )
-
-            if is_anomaly:
-                anomalies.append(reading)
+        from ai.energy_model import EnergyModel
+        model = EnergyModel()
+        result = model.detect_anomalies(data)
+        anomalies = result.get("anomalies", [])
+        
+        # Keep track of IDs that are anomalous to update database
+        for anomaly in anomalies:
+            if "_id" in anomaly:
+                await self.energy_collection.update_one(
+                    {"_id": anomaly["_id"]},
+                    {"$set": {"is_anomaly": True}}
+                )
 
         return anomalies
 
