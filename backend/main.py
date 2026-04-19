@@ -4,17 +4,23 @@ Main FastAPI application
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import logging
 from contextlib import asynccontextmanager
 from database import connect_db, close_db
 from routes import auth, devices, energy, dashboard, billing
 from config import settings
+from fastapi.responses import JSONResponse
+import traceback
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 # Lifespan management
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     await connect_db()
-    print("✓ AI-PECO Backend Started")
+    logger.info("✓ AI-PECO Backend Started")
     yield
     # Shutdown
     await close_db()
@@ -44,14 +50,9 @@ app.include_router(energy.router)
 app.include_router(dashboard.router)
 app.include_router(billing.router)
 
-from fastapi.responses import JSONResponse
-import traceback
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc: Exception):
-    with open("fastapi_errors.log", "a") as f:
-        f.write("Global error:\n")
-        traceback.print_exc(file=f)
-    print("Caught:", exc)
+    logger.error(f"Global error: {exc}", exc_info=True)
     return JSONResponse(status_code=500, content={"detail": str(exc)})
 
 @app.get("/health")

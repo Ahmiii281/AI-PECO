@@ -4,6 +4,7 @@ Authentication routes
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database import get_db
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from services.auth_service import AuthService
 from schemas import UserRegister, UserLogin, TokenResponse, UserResponse
 from utils.jwt import decode_token
@@ -39,7 +40,6 @@ async def get_current_admin(user_id: str = Depends(get_current_user)):
     """
     Dependency to get current admin user
     """
-    db = get_db()
     auth_service = AuthService(db)
     
     try:
@@ -63,7 +63,6 @@ async def register(user_data: UserRegister):
     """
     Register a new user
     """
-    db = get_db()
     auth_service = AuthService(db)
 
     try:
@@ -85,7 +84,6 @@ async def login(credentials: UserLogin):
     """
     Login and get access token
     """
-    db = get_db()
     auth_service = AuthService(db)
 
     try:
@@ -100,7 +98,6 @@ async def get_profile(user_id: str = Depends(get_current_user)):
     """
     Get current user profile
     """
-    db = get_db()
     auth_service = AuthService(db)
 
     try:
@@ -122,7 +119,6 @@ async def get_all_users(admin_id: str = Depends(get_current_admin)):
     """
     Admin: Get all users
     """
-    db = get_db()
     users = await db.users.find().to_list(100)
     return [
         {
@@ -142,7 +138,6 @@ async def delete_user(target_user_id: str, admin_id: str = Depends(get_current_a
     """
     Admin: Delete a user
     """
-    db = get_db()
     from bson import ObjectId
     result = await db.users.delete_one({"_id": ObjectId(target_user_id)})
     if result.deleted_count == 0:

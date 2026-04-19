@@ -1,67 +1,71 @@
 """
 Database initialization and connections
 """
+import logging
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from config import settings
 
-# Global database instance
-client: AsyncIOMotorClient = None
-db: AsyncIOMotorDatabase = None
+logger = logging.getLogger(__name__)
 
+class DatabaseManager:
+    client: AsyncIOMotorClient = None
+    db: AsyncIOMotorDatabase = None
+
+db_manager = DatabaseManager()
 
 async def connect_db():
     """
-    Connect to MongoDB
+    Connect to MongoDB with proper connection pooling and timeouts
     """
-    global client, db
-    
-    # Create indexes and DB connect
     try:
-        from mongomock_motor import AsyncMongoMockClient
-        print("⚠ Using IN-MEMORY mongomock_motor Database for testing.")
-        client = AsyncMongoMockClient()
-        db = client[settings.DATABASE_NAME]
+        logger.info("Connecting to MongoDB...")
+        db_manager.client = AsyncIOMotorClient(
+            settings.MONGODB_URL,
+            serverSelectionTimeoutMS=5000,
+            maxPoolSize=50,
+            minPoolSize=10
+        )
+        db_manager.db = db_manager.client[settings.DATABASE_NAME]
         await create_indexes()
-        print("✓ Connected to MongoDB (Mocked)")
+        logger.info("Connected to MongoDB established successfully")
     except Exception as e:
-        print(f"⚠ Could not setup mock MongoDB: {e}")
-
+        logger.error(f"Could not connect to MongoDB: {e}")
+        raise e
 
 async def close_db():
     """
     Close MongoDB connection
     """
-    global client
-    if client:
-        client.close()
-        print("✓ Disconnected from MongoDB")
-
+    if db_manager.client:
+        db_manager.client.close()
+        logger.info("Disconnected from MongoDB")
 
 async def create_indexes():
     """
     Create database indexes for performance
     """
     # Users collection
-    await db.users.create_index("email", unique=True)
+    await db_manager.db.users.create_index("email", unique=True)
     
     # Devices collection
-    await db.devices.create_index("user_id")
+    await db_manager.db.devices.create_index("user_id")
     
     # Energy data - compound index for time-series queries
-    await db.energy_data.create_index([("device_id", 1), ("timestamp", -1)])
-    await db.energy_data.create_index("device_id")
+    await db_manager.db.energy_data.create_index([("device_id", 1), ("timestamp", -1)])
+    await db_manager.db.energy_data.create_index("device_id")
     
     # Alerts
-    await db.alerts.create_index("user_id")
-    await db.alerts.create_index("timestamp")
+    await db_manager.db.alerts.create_index("user_id")
+    await db_manager.db.alerts.create_index("timestamp")
     
     # Recommendations
-    await db.recommendations.create_index("user_id")
-    await db.recommendations.create_index("timestamp")
+    await db_manager.db.recommendations.create_index("user_id")
+    await db_manager.db.recommendations.create_index("timestamp")
 
-
-def get_db() -> AsyncIOMotorDatabase:
+async def get_db() -> AsyncIOMotorDatabase:
     """
-    Get database instance
+    Get database instance using dependency injection pattern
     """
-    return db
+    if db_manager.db is None:
+        raise Exception("Database is not initialized")
+    return db_manager.db

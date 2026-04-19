@@ -3,6 +3,7 @@ Device management routes
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from database import get_db
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from services.device_service import DeviceService
 from schemas import DeviceCreate, DeviceUpdate, DeviceResponse
 from routes.auth import get_current_user, get_current_admin
@@ -18,7 +19,6 @@ async def create_device(
     """
     Create a new device
     """
-    db = get_db()
     device_service = DeviceService(db)
 
     try:
@@ -41,7 +41,6 @@ async def get_devices(user_id: str = Depends(get_current_user)):
     """
     Get all devices for current user
     """
-    db = get_db()
     device_service = DeviceService(db)
 
     devices = await device_service.get_user_devices(user_id)
@@ -68,7 +67,6 @@ async def get_device(
     """
     Get device details
     """
-    db = get_db()
     device_service = DeviceService(db)
 
     try:
@@ -95,7 +93,6 @@ async def update_device(
     """
     Update device information
     """
-    db = get_db()
     device_service = DeviceService(db)
 
     try:
@@ -125,7 +122,6 @@ async def delete_device(
     """
     Delete a device
     """
-    db = get_db()
     device_service = DeviceService(db)
 
     try:
@@ -139,7 +135,6 @@ async def get_all_devices_admin(admin_id: str = Depends(get_current_admin)):
     """
     Admin: Get all devices in the system
     """
-    db = get_db()
     devices = await db.devices.find().to_list(1000)
     return [
         {
