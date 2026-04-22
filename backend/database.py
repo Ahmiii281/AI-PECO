@@ -15,16 +15,16 @@ async def connect_db():
     """
     global client, db
     
-    # Create indexes and DB connect
     try:
-        from mongomock_motor import AsyncMongoMockClient
-        print("⚠ Using IN-MEMORY mongomock_motor Database for testing.")
-        client = AsyncMongoMockClient()
+        client = AsyncIOMotorClient(settings.MONGODB_URL)
+        # Verify connection
+        await client.admin.command('ping')
         db = client[settings.DATABASE_NAME]
         await create_indexes()
-        print("✓ Connected to MongoDB (Mocked)")
+        logger.info("✓ Connected to MongoDB")
     except Exception as e:
-        print(f"⚠ Could not setup mock MongoDB: {e}")
+        logger.error(f"❌ Failed to connect to MongoDB: {e}")
+        raise
 
 
 async def close_db():

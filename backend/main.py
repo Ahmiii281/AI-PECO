@@ -8,16 +8,33 @@ from contextlib import asynccontextmanager
 from database import connect_db, close_db
 from routes import auth, devices, energy, dashboard, billing
 from config import settings
+from utils.logger import setup_logger
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from fastapi.responses import JSONResponse
 
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request, exc):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Rate limit exceeded. Try again later."}
+    )
+
+logger = setup_logger(__name__)
 # Lifespan management
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     await connect_db()
-    print("✓ AI-PECO Backend Started")
+    logger.info("✓ AI-PECO Backend Started")
     yield
     # Shutdown
     await close_db()
+    logger.info("✓ Disconnected from MongoDB")
 
 
 # Create FastAPI app
@@ -33,8 +50,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],  # Explicit methods
+    allow_headers=["Content-Type", "Authorization"],  # Explicit headers
+    max_age=3600,  # Cache preflight for 1 hour
 )
 
 # Include routes

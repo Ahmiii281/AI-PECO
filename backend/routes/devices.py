@@ -2,10 +2,10 @@
 Device management routes
 """
 from fastapi import APIRouter, Depends, HTTPException, status
-from database import get_db
-from services.device_service import DeviceService
-from schemas import DeviceCreate, DeviceUpdate, DeviceResponse
 from routes.auth import get_current_user, get_current_admin
+from services.device_service import DeviceService
+from schemas import DeviceCreate, DeviceUpdate, DeviceResponse, UserResponse
+from database import get_db
 
 router = APIRouter(prefix="/api/devices", tags=["devices"])
 
@@ -154,3 +154,20 @@ async def get_all_devices_admin(admin_id: str = Depends(get_current_admin)):
         }
         for device in devices
     ]
+
+
+@router.get("/{device_id}")
+async def get_device(
+    device_id: str,
+    current_user: UserResponse = Depends(get_current_user),
+    db = Depends(get_db)
+):
+    device = await db.devices.find_one({"_id": device_id, "user_id": current_user.id})
+    
+    if not device:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Device not found or access denied"
+        )
+    
+    return device
