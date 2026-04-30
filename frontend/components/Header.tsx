@@ -29,44 +29,40 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     };
   }, []);
   return (
-    <header className="bg-[#050505] shadow-md p-4 flex justify-between items-center z-10 border-b border-[#1A1A1A]">
+    <header className="bg-black p-4 flex justify-between items-center z-10 border-b border-zinc-900 shadow-lg">
       <div className="flex items-center">
         <button
           onClick={onMenuClick}
-          className="md:hidden mr-4 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500"
+          className="md:hidden mr-4 text-zinc-500 hover:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
           aria-label="Open sidebar"
         >
           <span className="sr-only">Open sidebar</span>
           <MenuIcon />
         </button>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white">AI-PECO Dashboard</h1>
-          <p className="text-xs sm:text-sm text-gray-400">AI-Powered Energy Consumption Optimizer</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tighter">AI<span className="text-emerald-500">-</span>PECO <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded ml-2 font-mono">OS_DASHBOARD</span></h1>
+          <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-[0.2em]">High Performance Energy Optimization</p>
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="hidden sm:flex flex-col items-end text-right text-sm text-gray-400 space-y-1">
-          <div>
-            <p className="text-green-500 font-semibold">University of Mianwali</p>
-            <p>FYP 2025</p>
-          </div>
-          <div className="flex items-center space-x-2 text-xs">
+        <div className="hidden sm:flex flex-col items-end text-right font-mono space-y-1">
+          <div className="flex items-center space-x-2 text-[10px] uppercase tracking-widest">
             <span
-              className={`inline-flex h-2.5 w-2.5 rounded-full ${
+              className={`inline-flex h-1.5 w-1.5 rounded-full ${
                 backendOnline === null
-                  ? 'bg-gray-400'
+                  ? 'bg-zinc-700'
                   : backendOnline
-                  ? 'bg-green-500'
-                  : 'bg-red-500'
+                  ? 'bg-emerald-500 shadow-[0_0_10px_#00FF41] animate-pulse'
+                  : 'bg-red-600'
               }`}
             />
-            <span>
-              Backend{' '}
+            <span className={backendOnline ? 'text-emerald-500' : 'text-zinc-600'}>
+              SYS_{' '}
               {backendOnline === null
-                ? 'checking...'
+                ? 'BOOTING'
                 : backendOnline
-                ? 'online'
-                : 'offline'}
+                ? 'ONLINE'
+                : 'OFFLINE'}
             </span>
           </div>
         </div>

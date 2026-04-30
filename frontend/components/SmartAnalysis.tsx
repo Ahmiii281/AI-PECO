@@ -83,45 +83,42 @@ const SmartAnalysis: React.FC<SmartAnalysisProps> = ({ consumptionHistory }) => 
   }
 
   return (
-    <div className="bg-white dark:bg-gray-700/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-transparent">
+    <div className="pcb-card p-6">
       <div className="flex items-center mb-4">
-        <SparklesIcon />
-        <h3 className="text-xl font-semibold ml-2 text-gray-900 dark:text-white">Smart Analysis (Thinking Mode)</h3>
+        <div className="text-emerald-500 animate-pulse">
+          <SparklesIcon />
+        </div>
+        <h3 className="text-xl font-semibold ml-2 text-white font-mono uppercase tracking-tighter">AI <span className="text-emerald-500">CORE</span></h3>
       </div>
-      <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Ask questions about your energy consumption patterns and get detailed insights.</p>
+      <p className="text-zinc-500 mb-6 text-[10px] font-mono uppercase tracking-[0.2em]">Diagnostic interface and consumption analysis.</p>
       
-      <div className="flex flex-col md:flex-row gap-2">
+      <div className="flex flex-col md:flex-row gap-3">
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="e.g., 'Why was my consumption high yesterday afternoon?'"
-          className="flex-grow bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:outline-none"
+          placeholder="ENTER_QUERY..."
+          className="flex-grow bg-black border border-zinc-800 rounded px-4 py-2 text-emerald-500 placeholder-zinc-800 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-all font-mono text-xs"
           disabled={isLoading}
         />
         <button
           onClick={handleAnalysis}
           disabled={isLoading}
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-md transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-500 disabled:cursor-not-allowed flex items-center justify-center"
+          className="bg-emerald-600 hover:bg-emerald-500 text-black font-bold py-2 px-8 rounded transition-all active:scale-95 disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center font-mono text-xs uppercase tracking-widest"
         >
-          {isLoading ? (
-            <>
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Thinking...
-            </>
-          ) : 'Analyze'}
+          {isLoading ? 'EXECUTING...' : 'RUN_PROC'}
         </button>
       </div>
 
-      {error && <p className="text-red-500 dark:text-red-400 mt-4">{error}</p>}
+      {error && <p className="text-white mt-4 font-mono text-[9px] uppercase bg-red-900/20 p-2 border border-red-900/50">ERR_EXCEPTION: {error}</p>}
       
       {response && (
-        <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
-           <div className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300">
+        <div className="mt-8 p-5 bg-black rounded border border-zinc-900 shadow-inner">
+           <div className="prose prose-sm max-w-none text-zinc-300 font-sans leading-relaxed">
               {renderResponse(response)}
+           </div>
+           <div className="mt-4 pt-4 border-t border-zinc-900 text-[9px] font-mono text-zinc-700 uppercase tracking-widest">
+             CORE_REPORT_GEN_AUTO
            </div>
         </div>
       )}

@@ -13,20 +13,20 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, trend }) => {
   const isDown = trend && parseFloat(trend) < 0;
 
   return (
-    <div className="bg-white dark:bg-gray-700/50 p-6 rounded-xl shadow-lg flex items-start justify-between transform hover:scale-105 transition-transform duration-300 border border-gray-200 dark:border-transparent">
+    <div className="pcb-card p-6 flex items-start justify-between">
       <div>
-        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
-        <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+        <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">{title}</p>
+        <p className="text-3xl font-bold mt-1 digital-value">{value}</p>
         {trend && (
-          <div className={`mt-2 flex items-center text-sm ${isUp ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
-            <span className="w-5 h-5">
-              {isUp ? '▲' : '▼'}
+          <div className={`mt-2 flex items-center text-[10px] font-mono ${isUp ? 'text-emerald-500' : 'text-white'}`}>
+            <span className="mr-1">
+              {isUp ? '>>' : '<<'}
             </span>
-            <span>{trend} vs yesterday</span>
+            <span>{trend} STATUS</span>
           </div>
         )}
       </div>
-      <div className="bg-green-100 dark:bg-green-500/20 text-green-500 dark:text-green-400 rounded-full p-3">
+      <div className="bg-emerald-500/5 text-emerald-500 rounded p-2 border border-emerald-500/20">
         {icon}
       </div>
     </div>

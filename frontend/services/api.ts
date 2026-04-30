@@ -29,8 +29,14 @@ const apiCall = async (
     options.body = JSON.stringify(data);
   }
 
+  // Add timeout logic
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), 10000); // 10s timeout
+  options.signal = controller.signal;
+
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+    clearTimeout(id);
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -119,63 +125,14 @@ export const healthAPI = {
       .catch(() => ({ status: "unavailable" })),
 };
 
-import axios, { AxiosError } from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
-
-const apiClient = axios.create({
-  baseURL: API_URL,
-  timeout: 10000,
-});
-
-// Add token to requests
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Handle errors globally
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    } else if (error.response?.status === 429) {
-      console.error('Rate limited. Please try again later.');
-    } else if (error.response?.status === 500) {
-      console.error('Server error. Please try again later.');
-    }
-    return Promise.reject(error);
-  }
-);
-
-export const authAPI = {
-  register: async (email: string, password: string, name: string) => {
-    try {
-      const response = await apiClient.post('/auth/register', {
-        email,
-        password,
-        name,
-      });
-      return response.data;
-    } catch (error) {
-      throw new Error(error?.response?.data?.detail || 'Registration failed');
-    }
-  },
-
-  login: async (email: string, password: string) => {
-    try {
-      const response = await apiClient.post('/auth/login', { email, password });
-      localStorage.setItem('token', response.data.access_token);
-      return response.data;
-    } catch (error) {
-      throw new Error(error?.response?.data?.detail || 'Login failed');
-    }
-  },
+const apiClient = {
+  auth: authAPI,
+  devices: deviceAPI,
+  energy: energyAPI,
+  dashboard: dashboardAPI,
+  billing: billingAPI,
+  health: healthAPI,
 };
 
 export default apiClient;

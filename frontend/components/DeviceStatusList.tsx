@@ -8,29 +8,29 @@ interface DeviceStatusListProps {
 }
 
 const statusColors: Record<DeviceStatus, string> = {
-  [DeviceStatus.Online]: 'bg-green-500',
-  [DeviceStatus.Offline]: 'bg-red-500',
-  [DeviceStatus.Idle]: 'bg-yellow-500',
+  [DeviceStatus.Online]: 'bg-emerald-500 shadow-[0_0_8px_#00FF41]',
+  [DeviceStatus.Offline]: 'bg-zinc-700',
+  [DeviceStatus.Idle]: 'bg-white shadow-[0_0_8px_#FFFFFF]',
 };
 
 const DeviceStatusList: React.FC<DeviceStatusListProps> = ({ devices }) => {
   return (
-    <div className="bg-white dark:bg-gray-700/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-transparent">
-      <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Device Status</h3>
-      <ul className="space-y-4">
+    <div className="pcb-card p-6">
+      <h3 className="text-xl font-semibold mb-4 text-white font-mono uppercase tracking-tighter">Inventory <span className="text-emerald-500">Log</span></h3>
+      <ul className="space-y-3">
         {devices.map(device => (
-          <li key={device.id} className="flex items-center justify-between bg-gray-100 dark:bg-gray-600/50 p-3 rounded-lg">
+          <li key={device.id} className="flex items-center justify-between bg-black border border-zinc-900 p-3 rounded hover:border-emerald-500/30 transition-colors">
             <div className="flex items-center">
-                <div className="text-gray-500 dark:text-gray-400"><ChipIcon /></div>
+                <div className="text-zinc-600"><ChipIcon /></div>
                 <div className="ml-4">
-                    <p className="font-semibold text-gray-800 dark:text-white">{device.name}</p>
+                    <p className="font-semibold text-white text-sm">{device.name}</p>
                     <div className="flex items-center mt-1">
-                        <span className={`h-2.5 w-2.5 rounded-full mr-2 ${statusColors[device.status]}`}></span>
-                        <p className="text-xs text-gray-600 dark:text-gray-300">{device.status}</p>
+                        <span className={`h-1.5 w-1.5 rounded-full mr-2 ${statusColors[device.status]}`}></span>
+                        <p className="text-[9px] font-mono uppercase tracking-widest text-zinc-500">{device.status}</p>
                     </div>
                 </div>
             </div>
-            <p className="font-mono text-lg text-green-600 dark:text-green-400">{device.power > 0 ? `${device.power}W` : '-'}</p>
+            <p className="digital-value text-lg">{device.power > 0 ? `${device.power}W` : '0.00W'}</p>
           </li>
         ))}
       </ul>

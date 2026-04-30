@@ -1,27 +1,40 @@
 {
   "name": "ai-powered-energy-consumption-optimizer-(ai-peco)",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
   "dependencies": {
-    "axios": "^1.15.2",
-    "marked": "^18.0.2",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "react-is": "^19.2.5",
-    "react-router-dom": "^7.14.2",
-    "recharts": "^3.8.1"
+    "@types/dompurify": "^3.0.5",
+    "axios": "^1.6.0",
+    "dompurify": "^3.4.1",
+    "marked": "^11.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.21.0",
+    "recharts": "^2.10.3"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
+    "@tailwindcss/vite": "^4.2.4",
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
     "@vitejs/plugin-react": "^6.0.1",
-    "typescript": "~6.0.3",
-    "vite": "^8.0.9"
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^5.3.3",
+    "vite": "^8.0.9",
+    "vite-plugin-compression": "^0.5.1"
   },
   "description": "AI-PECO is a web application built with React and TypeScript that helps users monitor and optimize their electricity consumption. The dashboard displays real-time power usage, device status, energy forecasts, and provides recommendations to reduce costs.",
   "main": "index.js",

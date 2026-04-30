@@ -11,20 +11,10 @@
     "docker:up": "docker-compose up --build",
     "docker:down": "docker-compose down"
   },
-  "author": "AI-PECO Team",
-  "license": "MIT",
-  "dependencies": {
-    "axios": "^1.15.2",
-    "marked": "^18.0.2",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "react-router-dom": "^7.14.2",
-    "recharts": "^3.8.1"
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
-  "devDependencies": {
-    "@types/node": "^25.6.0",
-    "@vitejs/plugin-react": "^6.0.1",
-    "typescript": "^6.0.3",
-    "vite": "^8.0.9"
-  }
+  "author": "AI-PECO Team",
+  "license": "MIT"
 }

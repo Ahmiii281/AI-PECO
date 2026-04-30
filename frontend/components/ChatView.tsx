@@ -1,7 +1,7 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { SparklesIcon } from './Icons';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import useChatAssistant from '../hooks/useChatAssistant';
 
 const ChatView: React.FC = () => {
@@ -41,7 +41,12 @@ const ChatView: React.FC = () => {
                             </div>
                         )}
                         <div className={`max-w-lg lg:max-w-2xl px-4 py-3 rounded-2xl shadow-sm ${msg.sender === 'user' ? 'bg-green-600 text-white rounded-br-none' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'}`}>
-                           <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }}></div>
+                           <div 
+                                    className="prose prose-sm dark:prose-invert max-w-none text-gray-800 dark:text-gray-200"
+                                    dangerouslySetInnerHTML={{ 
+                                      __html: DOMPurify.sanitize(marked.parse(msg.text) as string) 
+                                    }} 
+                                  />
                         </div>
                     </div>
                 ))}

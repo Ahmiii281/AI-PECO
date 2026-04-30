@@ -13,18 +13,11 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi.responses import JSONResponse
+from datetime import datetime
 
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-
-@app.exception_handler(RateLimitExceeded)
-async def rate_limit_handler(request, exc):
-    return JSONResponse(
-        status_code=429,
-        content={"detail": "Rate limit exceeded. Try again later."}
-    )
-
+# Setup logger
 logger = setup_logger(__name__)
+
 # Lifespan management
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,7 +29,6 @@ async def lifespan(app: FastAPI):
     await close_db()
     logger.info("✓ Disconnected from MongoDB")
 
-
 # Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
@@ -45,14 +37,25 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Rate limiting
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request, exc):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Rate limit exceeded. Try again later."}
+    )
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],  # Explicit methods
-    allow_headers=["Content-Type", "Authorization"],  # Explicit headers
-    max_age=3600,  # Cache preflight for 1 hour
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Content-Type", "Authorization"],
+    max_age=3600,
 )
 
 # Include routes
@@ -62,39 +65,36 @@ app.include_router(energy.router)
 app.include_router(dashboard.router)
 app.include_router(billing.router)
 
-from fastapi.responses import JSONResponse
 import traceback
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc: Exception):
-    with open("fastapi_errors.log", "a") as f:
-        f.write("Global error:\n")
-        traceback.print_exc(file=f)
-    print("Caught:", exc)
-    return JSONResponse(status_code=500, content={"detail": str(exc)})
+    logger.error(f"Unexpected error: {exc}")
+    try:
+        with open("logs/fastapi_errors.log", "a") as f:
+            f.write(f"\n{datetime.now().isoformat()} - Global error: {str(exc)}\n")
+            traceback.print_exc(file=f)
+    except:
+        pass
+        
+    return JSONResponse(
+        status_code=500, 
+        content={"detail": "Internal server error. Our team has been notified."}
+    )
 
 @app.get("/health")
 async def health_check():
-    """
-    Health check endpoint
-    """
     return {"status": "healthy", "app": settings.APP_NAME}
-
 
 @app.get("/")
 async def root():
-    """
-    Root endpoint
-    """
     return {
         "message": f"Welcome to {settings.APP_NAME}",
         "version": settings.APP_VERSION,
         "docs": "/docs"
     }
 
-
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(
         "main:app",
         host="0.0.0.0",

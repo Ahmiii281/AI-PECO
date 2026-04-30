@@ -1,13 +1,14 @@
 """
 Authentication routes
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database import get_db
 from services.auth_service import AuthService
 from schemas import UserRegister, UserLogin, TokenResponse, UserResponse
 from utils.jwt import decode_token
 from utils.rate_limit import limiter
+from datetime import datetime
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 security = HTTPBearer()
@@ -59,18 +60,10 @@ async def get_current_admin(user_id: str = Depends(get_current_user)):
         
     return user_id
 
-@router.post("/register", response_model=TokenResponse)
-@limiter.limit("5/minute")  # 5 requests per minute
-async def register(request: Request, user_data: UserRegister, db = Depends(get_db)):
-    ...
-
-@router.post("/login", response_model=TokenResponse)
-@limiter.limit("10/minute")  # 10 login attempts per minute
-async def login(request: Request, credentials: UserLogin, db = Depends(get_db)):
-    ...
     
 @router.post("/register", response_model=UserResponse)
-async def register(user_data: UserRegister):
+@limiter.limit("5/minute")
+async def register(request: Request, user_data: UserRegister):
     """
     Register a new user
     """
@@ -92,7 +85,8 @@ async def register(user_data: UserRegister):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(credentials: UserLogin):
+@limiter.limit("10/minute")
+async def login(request: Request, credentials: UserLogin):
     """
     Login and get access token
     """

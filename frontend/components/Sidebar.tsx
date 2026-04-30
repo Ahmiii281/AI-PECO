@@ -38,12 +38,14 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
       ></div>
 
       {/* Sidebar */}
-      <aside className={`fixed top-0 left-0 h-full w-64 bg-[#121212] text-white flex-col z-30 transition-transform duration-300 ease-in-out md:flex md:static md:translate-x-0 border-r border-[#1A1A1A] ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between p-6 border-b border-[#1A1A1A]">
-          <h2 className="text-3xl font-bold text-green-500">AI-PECO</h2>
+      <aside className={`fixed top-0 left-0 h-full w-64 bg-black text-white flex-col z-30 transition-transform duration-300 ease-in-out md:flex md:static md:translate-x-0 border-r border-zinc-900 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between p-6 border-b border-zinc-900">
+          <h2 className="text-3xl font-bold text-emerald-500 tracking-tighter">
+            AI<span className="text-white">-</span>PECO
+          </h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="md:hidden text-gray-400 hover:text-white"
+            className="md:hidden text-zinc-500 hover:text-white"
             aria-label="Close sidebar"
           >
             <span className="sr-only">Close sidebar</span>
@@ -55,20 +57,22 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
             <button
               key={item.name}
               onClick={() => handleItemClick(item.view)}
-              className={`w-full flex items-center px-4 py-3 text-lg rounded-lg transition-colors duration-200 ${
+              className={`w-full flex items-center px-4 py-3 text-lg rounded transition-all duration-200 ${
                 activeView === item.view
-                  ? 'bg-green-500 text-black font-bold'
-                  : 'text-gray-400 hover:bg-[#1A1A1A] hover:text-white'
+                  ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-bold'
+                  : 'text-zinc-500 hover:bg-zinc-900 hover:text-white'
               }`}
             >
-              {item.icon}
+              <div className={activeView === item.view ? 'text-emerald-500' : 'text-zinc-600'}>
+                {item.icon}
+              </div>
               <span className="ml-4">{item.name}</span>
             </button>
           ))}
         </nav>
-        <div className="p-4 border-t border-[#1A1A1A] text-center text-xs text-gray-500">
-          <p>&copy; 2025 AI-PECO Team</p>
-          <p>All Rights Reserved</p>
+        <div className="p-4 border-t border-zinc-900 text-center text-[10px] uppercase tracking-widest text-zinc-600 font-mono">
+          <p>&copy; 2025 AI-PECO SYSTEMS</p>
+          <p>BUILD_REL_STABLE</p>
         </div>
       </aside>
     </>

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { ChatMessage } from '../types';
 
 const WELCOME_MESSAGE: ChatMessage = {
@@ -61,6 +61,14 @@ const generateAnswer = (userQuestion: string, previousMessages: ChatMessage[]): 
 const useChatAssistant = () => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [processing, setProcessing] = useState(false);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const handleUserMessage = useCallback(
     async (userInput: string) => {
@@ -80,6 +88,8 @@ const useChatAssistant = () => {
 
       try {
         await waitForResponse(700);
+        if (!isMounted.current) return;
+
         setChatHistory((oldHistory) => {
           const botReply = generateAnswer(trimmedInput, oldHistory);
           const newBotMsg: ChatMessage = {
@@ -90,7 +100,9 @@ const useChatAssistant = () => {
           return [...oldHistory, newBotMsg];
         });
       } finally {
-        setProcessing(false);
+        if (isMounted.current) {
+          setProcessing(false);
+        }
       }
     },
     [processing]

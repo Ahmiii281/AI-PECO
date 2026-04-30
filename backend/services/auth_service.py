@@ -15,21 +15,6 @@ class AuthService:
         self.users_collection = db.users if db is not None else None
 
     async def register(self, user_data: UserRegister) -> dict:
-        """
-        Register a new user
-        """
-        # --- DEMO BYPASS ---
-        if user_data.email in ["admin@aipeco.com", "demo@admin.com"]:
-            return {
-                "_id": "000000000000000000000000",
-                "name": "Demo Admin",
-                "email": user_data.email,
-                "role": "admin",
-                "energy_limit": 100.0,
-                "created_at": None,
-                "is_active": True
-            }
-        # -------------------
 
         # Check if user exists
         existing_user = await self.users_collection.find_one({"email": user_data.email})
@@ -55,25 +40,6 @@ class AuthService:
         """
         Authenticate user and return access token
         """
-        # --- DEMO BYPASS ---
-        is_admin_bypass = email == "admin@aipeco.com" and password == "admin123"
-        is_demo_bypass = email == "demo@admin.com" and password == "password123"
-        
-        if is_admin_bypass or is_demo_bypass:
-            access_token = create_access_token(data={"sub": "000000000000000000000000"})
-            return {
-                "access_token": access_token,
-                "token_type": "bearer",
-                "user": {
-                    "id": "000000000000000000000000",
-                    "name": "Demo Admin",
-                    "email": email,
-                    "role": "admin",
-                    "energy_limit": 100.0,
-                    "created_at": None
-                }
-            }
-        # -------------------
 
         user = await self.users_collection.find_one({"email": email})
 
@@ -103,18 +69,6 @@ class AuthService:
         """
         Get user by ID
         """
-        # --- DEMO BYPASS ---
-        if user_id == "000000000000000000000000":
-            return {
-                "_id": "000000000000000000000000",
-                "name": "Demo Admin",
-                "email": "admin@aipeco.com",
-                "role": "admin",
-                "energy_limit": 100.0,
-                "created_at": None,
-                "is_active": True
-            }
-        # -------------------
 
         user = await self.users_collection.find_one({"_id": ObjectId(user_id)})
         if not user:

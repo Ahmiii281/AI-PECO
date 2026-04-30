@@ -155,8 +155,9 @@ const DashboardView: React.FC = () => {
 
         {/* Demo mode banner */}
         {isDemoMode && (
-          <div className="rounded-lg border border-dashed border-yellow-400 bg-yellow-50 text-xs sm:text-sm text-yellow-800 px-3 py-2 mb-4">
-            You are currently viewing <span className="font-semibold">sample demo data</span> generated in the browser. Backend stats are used when available.
+          <div className="rounded border border-dashed border-emerald-500/30 bg-emerald-500/5 text-[9px] text-emerald-500 px-4 py-2 mb-6 font-mono uppercase tracking-[0.2em] flex items-center gap-2">
+            <span className="flex-shrink-0 animate-pulse">[!]</span>
+            <span>SYSTEM_SANDBOX_ACTIVE: TELEMETRY_SIMULATED</span>
           </div>
         )}
 
@@ -172,8 +173,8 @@ const DashboardView: React.FC = () => {
           {/* Right Column: Devices and Recommendations */}
           <div className="space-y-8">
             <DeviceStatusList devices={devices} />
-            <div className="bg-white dark:bg-gray-700/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-transparent">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Energy Saving Tips</h3>
+            <div className="pcb-card p-6">
+              <h3 className="text-xl font-semibold mb-4 text-white font-mono uppercase tracking-tighter">Savings <span className="text-emerald-500">Manual</span></h3>
               <div className="space-y-4">
                 {recommendations.map((rec) => (
                   <RecommendationCard key={rec.id} recommendation={rec} />
