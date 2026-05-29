@@ -109,3 +109,27 @@ button:disabled {
 .auth-link a:hover {
   text-decoration: underline;
 }
+
+.forgot-link {
+  color: #9aa0a6;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+
+.back-link {
+  display: inline-block;
+  color: #00FF41;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.success-message {
+  background-color: #eef7ec;
+  color: #1a7f2a;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #1a7f2a;
+}

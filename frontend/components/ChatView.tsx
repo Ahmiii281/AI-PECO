@@ -2,32 +2,101 @@ import React, { useEffect, useRef, useState } from 'react';
 import { SparklesIcon } from './Icons';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import useChatAssistant from '../hooks/useChatAssistant';
+import { ChatMessage } from '../types';
+
+const WELCOME_MESSAGE: ChatMessage = {
+    id: 'welcome',
+    sender: 'bot',
+    text: "Hello! I'm your energy assistant powered by Reinforcement Learning. I can help you understand your power consumption, save money on bills, and optimize your device usage. Try asking about costs, forecasts, or how to save energy.",
+};
+
+const SYSTEM_PROMPT = `You are an AI energy assistant for AI-PECO, a smart home energy monitoring system. Help users understand their electricity consumption, reduce bills, optimize device usage, and interpret energy forecasts. Be concise, practical, and focused on energy topics. Format responses in markdown when helpful.`;
 
 const ChatView: React.FC = () => {
-  const { messages, isLoading, sendMessage } = useChatAssistant();
-  const [input, setInput] = useState('');
-  const messagesEndRef = useRef<null | HTMLDivElement>(null);
+    const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [input, setInput] = useState('');
+    const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages, isLoading]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    const sendMessage = async (userInput: string) => {
+        const trimmed = userInput.trim();
+        if (!trimmed || isLoading) return;
 
-    const nextInput = input;
-    setInput('');
-    await sendMessage(nextInput);
-  };
+        const userMsg: ChatMessage = { id: `${Date.now()}`, sender: 'user', text: trimmed };
+        setMessages((m) => [...m, userMsg]);
+        setIsLoading(true);
 
-    return (
-        <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-800">
+        const apiKey = (import.meta as any).env.VITE_OPENAI_API_KEY;
+        if (!apiKey) {
+            const errMsg: ChatMessage = { id: `err-${Date.now()}`, sender: 'bot', text: '⚠️ OpenAI API key not configured. Add VITE_OPENAI_API_KEY to your .env file.' };
+            setMessages((m) => [...m, errMsg]);
+            setIsLoading(false);
+            return;
+        }
+
+        // Prepare conversation history (exclude welcome message)
+        const history = messages
+            .filter((m) => m.id !== 'welcome')
+            .map((m) => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }));
+
+        const payload = {
+            model: 'gpt-4o-mini',
+            messages: [
+                { role: 'system', content: SYSTEM_PROMPT },
+                ...history,
+                { role: 'user', content: trimmed },
+            ],
+            max_tokens: 500,
+            temperature: 0.7,
+        };
+
+        try {
+            const res = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!res.ok) {
+                const txt = await res.text();
+                throw new Error(`OpenAI API error: ${res.status} ${txt}`);
+            }
+
+            const data = await res.json();
+            const botText = data?.choices?.[0]?.message?.content ?? 'Sorry, I could not generate a response.';
+
+            const botMsg: ChatMessage = { id: `${Date.now() + 1}`, sender: 'bot', text: botText };
+            setMessages((m) => [...m, botMsg]);
+        } catch (err: any) {
+            const errMsg: ChatMessage = { id: `err-${Date.now()}`, sender: 'bot', text: err?.message || 'An error occurred while getting a response.' };
+            setMessages((m) => [...m, errMsg]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSendMessage = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!input.trim() || isLoading) return;
+
+        const nextInput = input;
+        setInput('');
+        await sendMessage(nextInput);
+    };
+
+        return (
+                <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-800">
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 sticky top-0 z-10">
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Energy Assistant</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Ask questions about your energy usage</p>

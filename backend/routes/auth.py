@@ -9,6 +9,9 @@ from schemas import UserRegister, UserLogin, TokenResponse, UserResponse
 from utils.jwt import decode_token
 from utils.rate_limit import limiter
 from datetime import datetime
+from datetime import timedelta
+import secrets
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 security = HTTPBearer()
@@ -153,4 +156,27 @@ async def delete_user(target_user_id: str, admin_id: str = Depends(get_current_a
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User deleted successfully"}
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+@router.post("/forgot-password")
+async def forgot_password(request: Request, payload: ForgotPasswordRequest):
+    """
+    Initiate a password reset flow. Always return 200 and do not reveal
+    whether the email exists in the system.
+    """
+    db = get_db()
+    email = payload.email
+
+    user = await db.users.find_one({"email": email})
+    if user:
+        token = secrets.token_urlsafe(32)
+        expiry = datetime.utcnow() + timedelta(hours=1)
+        await db.users.update_one({"_id": user["_id"]}, {"$set": {"reset_token": token, "reset_token_expiry": expiry}})
+        print(f"Password reset token for {email}: {token}")
+
+    return {"message": "If this email is registered, a reset link has been sent."}
 

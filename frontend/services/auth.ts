@@ -73,6 +73,15 @@ class AuthService {
     return user;
   }
 
+  async forgotPassword(email: string): Promise<any> {
+    try {
+      const res = await authAPI.forgotPassword(email);
+      return res;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   setToken(token: string) {
     this.token = token;
     localStorage.setItem("access_token", token);

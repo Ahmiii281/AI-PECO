@@ -62,6 +62,9 @@ export const authAPI = {
   login: (email: string, password: string) =>
     apiCall("/api/auth/login", "POST", { email, password }),
 
+  forgotPassword: (email: string) =>
+    apiCall("/api/auth/forgot-password", "POST", { email }),
+
   getProfile: () => apiCall("/api/auth/me", "GET"),
 };
 
