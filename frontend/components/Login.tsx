@@ -74,9 +74,13 @@ export default function Login() {
                   required
                 />
                 <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
-                  <span className="forgot-link" onClick={() => { setView('forgot'); setError(''); setSuccessMessage(''); }}>
+                  <button
+                    type="button"
+                    className="forgot-link"
+                    onClick={() => { setView('forgot'); setError(''); setSuccessMessage(''); }}
+                  >
                     Forgot password?
-                  </span>
+                  </button>
                 </div>
               </div>
 
@@ -93,9 +97,13 @@ export default function Login() {
 
         {view === 'forgot' && (
           <>
-            <a className="back-link" onClick={() => { setView('login'); setError(''); setSuccessMessage(''); }}>
+            <button
+              type="button"
+              className="back-link"
+              onClick={() => { setView('login'); setError(''); setSuccessMessage(''); }}
+            >
               ← Back to Login
-            </a>
+            </button>
 
             <h2 style={{ marginTop: '0.5rem' }}>Reset Password</h2>
             <p style={{ color: '#b0b0b0' }}>Enter your email and we'll send you a reset link.</p>

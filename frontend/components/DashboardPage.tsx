@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { dashboardAPI, energyAPI, deviceAPI } from '../../services/api';
+import { dashboardAPI, energyAPI, deviceAPI } from '../services/api';
 import './Dashboard.css';
 
 export default function Dashboard() {
