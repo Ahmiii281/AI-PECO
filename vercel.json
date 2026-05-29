@@ -7,7 +7,6 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "envPrefix": "VITE_",
   "rewrites": [
     {
       "source": "/:path((?!api/.*).*)",
