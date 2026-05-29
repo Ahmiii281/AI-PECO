@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     # Demo mode (when ESP32 hardware is not connected)
     DEMO_MODE: bool = True
 
+    # Server port (overridden by Render/Railway via PORT env var)
+    PORT: int = 8000
+
     # Features
     ENABLE_AI_PREDICTIONS: bool = True
     ENABLE_AUTO_ALERTS: bool = True

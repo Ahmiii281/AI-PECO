@@ -1,4 +1,3 @@
-```gitignore
 # =========================
 # Logs
 # =========================
@@ -10,10 +9,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Runtime log files (auto-generated)
+backend/error.txt
+backend/startup_log.txt
+
 # =========================
 # Node / Frontend
 # =========================
 node_modules/
+**/node_modules/
 dist/
 dist-ssr/
 *.local
@@ -25,14 +29,17 @@ dist-ssr/
 .env.local
 .env.*.local
 backend/.env
+frontend/.env.production
 esp32/credentials.h
 
 # =========================
 # Python
 # =========================
 __pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
+*.pyd
 
 # Virtual environments
 venv/
@@ -42,6 +49,7 @@ backend/venv/
 backend/venv_new/
 backend/ml_venv/
 backend/venv_run/
+.venv/
 
 # =========================
 # AI / ML (Large Files)
@@ -69,10 +77,6 @@ backend/ai/saved_models/training_plots/
 build/
 dist/
 
-# Generated files
-backend/error.txt
-backend/startup_log.txt
-
 # =========================
 # IDE / Editor
 # =========================
@@ -85,4 +89,14 @@ backend/startup_log.txt
 *.njsproj
 *.sln
 *.sw?
-```
+
+# =========================
+# OS files
+# =========================
+Thumbs.db
+Desktop.ini
+
+# =========================
+# Docker
+# =========================
+.docker/

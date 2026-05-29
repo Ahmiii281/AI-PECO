@@ -17,11 +17,11 @@ services:
     container_name: aipeco-backend
     ports:
       - "8000:8000"
+    env_file:
+      - ./backend/.env
     environment:
+      # Override DB URL to use the docker service name
       - MONGODB_URL=mongodb://mongodb:27017/
-      - DATABASE_NAME=aipeco_db
-      - SECRET_KEY=dev_secret_key_change_in_prod
-      - CORS_ORIGINS=http://localhost:3000,http://localhost:5173
     depends_on:
       - mongodb
     restart: always
