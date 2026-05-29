@@ -1,0 +1,88 @@
+```gitignore
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# =========================
+# Environment & Secrets
+# =========================
+.env
+.env.local
+.env.*.local
+backend/.env
+esp32/credentials.h
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+env/
+ml_venv/
+backend/venv/
+backend/venv_new/
+backend/ml_venv/
+backend/venv_run/
+
+# =========================
+# AI / ML (Large Files)
+# =========================
+
+# Dataset
+backend/ai/data/household_power_consumption.txt
+ml/datasets/
+
+# Trained models
+backend/ai/saved_models/*.keras
+backend/ai/saved_models/*.pkl
+backend/ai/saved_models/*.json
+backend/ai/saved_models/training_plots/
+
+# Large ML artifacts
+*.h5
+*.pt
+*.pth
+*.onnx
+
+# =========================
+# Build files
+# =========================
+build/
+dist/
+
+# Generated files
+backend/error.txt
+backend/startup_log.txt
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+```

@@ -1,0 +1,125 @@
+
+export enum DeviceStatus {
+  Online = 'Online',
+  Offline = 'Offline',
+  Idle = 'Idle',
+}
+
+export type View = 'dashboard' | 'chatbot' | 'devices' | 'dht' | 'reports' | 'settings' | 'billing';
+
+export interface Device {
+  id: string;
+  name: string;
+  status: DeviceStatus;
+  power: number; // in Watts
+  isAdjustable?: boolean;
+  maxPower?: number;
+  tips?: string[];
+  normalPowerRange?: [number, number];
+}
+
+export interface DataPoint {
+  date: Date;
+  time: string;
+  power: number; // in kW
+  forecast?: number;
+}
+
+export interface Recommendation {
+  id:string;
+  title: string;
+  description: string;
+  estimatedSavings: string;
+}
+
+export interface Alert {
+  id: string;
+  message: string;
+  timestamp: string;
+  severity: 'high' | 'medium' | 'low';
+}
+
+export interface ChatMessage {
+  id: string;
+  text: string;
+  sender: 'user' | 'bot';
+}
+
+export type NotificationTone = 'success' | 'info' | 'warning';
+
+export interface Notification {
+  id: number;
+  message: string;
+  type: NotificationTone;
+}
+
+export type PerDeviceHistoricalData = Record<string, DataPoint[]>;
+
+export interface Anomaly {
+  id: string;
+  deviceId: string;
+  deviceName: string;
+  type: 'high' | 'low';
+  timestamp: Date;
+  duration: number; // in minutes
+  value: number; // the anomalous power value
+  normalRange: [number, number];
+}
+
+export interface DashboardStatsSummary {
+  total_power: number;
+  avg_temperature: number;
+  avg_humidity: number;
+  alert_count: number;
+  device_count: number;
+  forecasted_power?: number;
+}
+
+export interface BackendDevice {
+  id: string;
+  name: string;
+  location: string;
+  status: string;
+  is_relay_on: boolean;
+  relay_pin: number;
+  created_at: string;
+}
+
+export interface ForecastResult {
+  predicted_power_kw: number;
+  method: string;
+  confidence: string;
+  message: string;
+}
+
+export interface DisaggregationResult {
+  breakdown: Record<string, number>;
+  method: string;
+  confidence: string;
+  message: string;
+}
+
+export interface RLSuggestion {
+  action: string;
+  title: string;
+  description: string;
+  estimated_savings_pkr: number;
+  confidence: string;
+  source: string;
+  episodes_trained: number;
+  current_state_summary?: {
+    hour: number;
+    total_power_watts: number;
+    avg_temperature: number;
+    devices_on: number;
+    total_devices: number;
+  };
+}
+
+export interface SmartAnalysisResult {
+  query: string;
+  response: string;
+  rl_suggestion: RLSuggestion;
+  data_points_analyzed: number;
+}
+

@@ -1,0 +1,23 @@
+{
+  "name": "aipeco-workspace",
+  "version": "1.0.0",
+  "description": "AI-Powered Energy Consumption Optimizer",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "npm i -g concurrently && concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && python main.py",
+    "install:all": "cd frontend && npm install && cd ../backend && pip install -r requirements.txt",
+    "docker:up": "docker-compose up --build",
+    "docker:down": "docker-compose down"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "author": "AI-PECO Team",
+  "license": "MIT",
+  "dependencies": {
+    "cloc": "^2.6.0-cloc"
+  }
+}
