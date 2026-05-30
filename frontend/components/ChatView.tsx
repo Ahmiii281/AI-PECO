@@ -3,19 +3,11 @@ import { SparklesIcon } from './Icons';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { ChatMessage } from '../types';
-
-const WELCOME_MESSAGE: ChatMessage = {
-    id: 'welcome',
-    sender: 'bot',
-    text: "Hello! I'm your energy assistant powered by Reinforcement Learning. I can help you understand your power consumption, save money on bills, and optimize your device usage. Try asking about costs, forecasts, or how to save energy.",
-};
-
-const SYSTEM_PROMPT = `You are an AI energy assistant for AI-PECO, a smart home energy monitoring system. Help users understand their electricity consumption, reduce bills, optimize device usage, and interpret energy forecasts. Be concise, practical, and focused on energy topics. Format responses in markdown when helpful.`;
+import useChatbot from '../hooks/useChatbot';
 
 const ChatView: React.FC = () => {
-    const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
-    const [isLoading, setIsLoading] = useState(false);
     const [input, setInput] = useState('');
+    const { messages, isLoading, sendMessage } = useChatbot();
     const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -25,66 +17,6 @@ const ChatView: React.FC = () => {
     useEffect(() => {
         scrollToBottom();
     }, [messages, isLoading]);
-
-    const sendMessage = async (userInput: string) => {
-        const trimmed = userInput.trim();
-        if (!trimmed || isLoading) return;
-
-        const userMsg: ChatMessage = { id: `${Date.now()}`, sender: 'user', text: trimmed };
-        setMessages((m) => [...m, userMsg]);
-        setIsLoading(true);
-
-        const apiKey = (import.meta as any).env.VITE_OPENAI_API_KEY;
-        if (!apiKey) {
-            const errMsg: ChatMessage = { id: `err-${Date.now()}`, sender: 'bot', text: '⚠️ OpenAI API key not configured. Add VITE_OPENAI_API_KEY to your .env file.' };
-            setMessages((m) => [...m, errMsg]);
-            setIsLoading(false);
-            return;
-        }
-
-        // Prepare conversation history (exclude welcome message)
-        const history = messages
-            .filter((m) => m.id !== 'welcome')
-            .map((m) => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }));
-
-        const payload = {
-            model: 'gpt-4o-mini',
-            messages: [
-                { role: 'system', content: SYSTEM_PROMPT },
-                ...history,
-                { role: 'user', content: trimmed },
-            ],
-            max_tokens: 500,
-            temperature: 0.7,
-        };
-
-        try {
-            const res = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            });
-
-            if (!res.ok) {
-                const txt = await res.text();
-                throw new Error(`OpenAI API error: ${res.status} ${txt}`);
-            }
-
-            const data = await res.json();
-            const botText = data?.choices?.[0]?.message?.content ?? 'Sorry, I could not generate a response.';
-
-            const botMsg: ChatMessage = { id: `${Date.now() + 1}`, sender: 'bot', text: botText };
-            setMessages((m) => [...m, botMsg]);
-        } catch (err: any) {
-            const errMsg: ChatMessage = { id: `err-${Date.now()}`, sender: 'bot', text: err?.message || 'An error occurred while getting a response.' };
-            setMessages((m) => [...m, errMsg]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
