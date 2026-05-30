@@ -17,21 +17,21 @@ const EnergyChart: React.FC<EnergyChartProps> = ({ liveData, forecastData }) => 
     forecast: forecastData[idx]?.forecast
   }));
   
-  const axisColor = '#666666';
-  const gridLineColor = '#1A1A1A';
-  const tooltipBg = { backgroundColor: '#000000', border: '1px solid #00FF41', borderRadius: '4px', color: '#FFFFFF' };
-  const textColor = { color: '#FFFFFF' };
+  const axisColor = 'var(--color-text-secondary)';
+  const gridLineColor = 'var(--color-chart-grid)';
+  const tooltipBg = { backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-accent-primary)', borderRadius: '4px', color: 'var(--color-text-primary)' };
+  const textColor = { color: 'var(--color-text-primary)' };
 
 
   return (
     <div className="pcb-card p-4 sm:p-6 h-96">
-      <h3 className="text-xl font-semibold mb-4 text-white font-mono tracking-tighter uppercase">Power <span className="text-emerald-500">Monitor</span></h3>
+      <h3 className="text-xl font-semibold mb-4 font-mono tracking-tighter uppercase" style={{ color: 'var(--color-text-primary)' }}>Power <span style={{ color: 'var(--color-accent-primary)' }}>Monitor</span></h3>
       <ResponsiveContainer width="100%" height="85%">
         <AreaChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 40 }}>
           <defs>
             <linearGradient id="powerGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#00FF41" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#00FF41" stopOpacity={0}/>
+              <stop offset="5%" stopColor="var(--color-accent-primary)" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="var(--color-accent-primary)" stopOpacity={0}/>
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke={gridLineColor} vertical={false} />
@@ -47,12 +47,12 @@ const EnergyChart: React.FC<EnergyChartProps> = ({ liveData, forecastData }) => 
           <YAxis stroke={axisColor} tick={{ fontSize: 10, fill: axisColor, fontFamily: 'monospace' }} label={{ value: 'kW', angle: -90, position: 'insideLeft', fill: axisColor, fontSize: 10, fontFamily: 'monospace' }} />
           <Tooltip 
             contentStyle={tooltipBg}
-            itemStyle={{ color: '#00FF41', fontFamily: 'monospace' }}
-            labelStyle={{ color: '#FFFFFF', marginBottom: '4px', borderBottom: '1px solid #333333' }}
+            itemStyle={{ color: 'var(--color-accent-primary)', fontFamily: 'monospace' }}
+            labelStyle={{ color: 'var(--color-text-primary)', marginBottom: '4px', borderBottom: '1px solid var(--color-border-default)' }}
           />
           <Legend wrapperStyle={{ ...textColor, fontFamily: 'monospace', fontSize: '10px', paddingTop: '20px' }} />
-          <Area type="monotone" dataKey="power" name="REAL_TIME" stroke="#00FF41" fillOpacity={1} fill="url(#powerGradient)" strokeWidth={2} dot={false} />
-          <Area type="monotone" dataKey="forecast" name="FORECAST" stroke="#FFFFFF" fillOpacity={0} strokeWidth={1} strokeDasharray="5 5" dot={false} />
+          <Area type="monotone" dataKey="power" name="REAL_TIME" stroke="var(--color-accent-primary)" fillOpacity={1} fill="url(#powerGradient)" strokeWidth={2} dot={false} />
+          <Area type="monotone" dataKey="forecast" name="FORECAST" stroke="var(--color-text-primary)" fillOpacity={0} strokeWidth={1} strokeDasharray="5 5" dot={false} />
         </AreaChart>
       </ResponsiveContainer>
     </div>

@@ -8,25 +8,25 @@ interface DeviceStatusListProps {
 }
 
 const statusColors: Record<DeviceStatus, string> = {
-  [DeviceStatus.Online]: 'bg-emerald-500 shadow-[0_0_8px_#00FF41]',
-  [DeviceStatus.Offline]: 'bg-zinc-700',
-  [DeviceStatus.Idle]: 'bg-white shadow-[0_0_8px_#FFFFFF]',
+  [DeviceStatus.Online]: 'bg-[var(--color-success)]',
+  [DeviceStatus.Offline]: 'bg-[var(--color-border-subtle)]',
+  [DeviceStatus.Idle]: 'bg-[var(--color-text-primary)]',
 };
 
 const DeviceStatusList: React.FC<DeviceStatusListProps> = ({ devices }) => {
   return (
     <div className="pcb-card p-6">
-      <h3 className="text-xl font-semibold mb-4 text-white font-mono uppercase tracking-tighter">Inventory <span className="text-emerald-500">Log</span></h3>
+      <h3 className="text-xl font-semibold mb-4 font-mono uppercase tracking-tighter" style={{ color: 'var(--color-text-primary)' }}>Inventory <span style={{ color: 'var(--color-accent-primary)' }}>Log</span></h3>
       <ul className="space-y-3">
         {devices.map(device => (
-          <li key={device.id} className="flex items-center justify-between bg-black border border-zinc-900 p-3 rounded hover:border-emerald-500/30 transition-colors">
+          <li key={device.id} className="flex items-center justify-between p-3 rounded transition-colors" style={{ backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border-default)' }}>
             <div className="flex items-center">
                 <div className="text-zinc-600"><ChipIcon /></div>
                 <div className="ml-4">
-                    <p className="font-semibold text-white text-sm">{device.name}</p>
+                    <p className="font-semibold text-sm" style={{ color: 'var(--color-text-primary)' }}>{device.name}</p>
                     <div className="flex items-center mt-1">
                         <span className={`h-1.5 w-1.5 rounded-full mr-2 ${statusColors[device.status]}`}></span>
-                        <p className="text-[9px] font-mono uppercase tracking-widest text-zinc-500">{device.status}</p>
+                        <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>{device.status}</p>
                     </div>
                 </div>
             </div>

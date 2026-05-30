@@ -150,11 +150,12 @@ export default function Dashboard() {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={powerData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
+                  <CartesianGrid stroke="var(--color-chart-grid)" strokeDasharray="3 3" />
+                  <XAxis dataKey="time" stroke="var(--color-text-secondary)" />
+                  <YAxis stroke="var(--color-text-secondary)" />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="power" stroke="#667eea" strokeWidth={2} />
+                  <Line type="monotone" dataKey="power" stroke="var(--color-chart-line)" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -164,11 +165,12 @@ export default function Dashboard() {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={powerData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
+                  <CartesianGrid stroke="var(--color-chart-grid)" strokeDasharray="3 3" />
+                  <XAxis dataKey="time" stroke="var(--color-text-secondary)" />
+                  <YAxis stroke="var(--color-text-secondary)" />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="current" fill="#764ba2" />
+                  <Bar dataKey="current" fill="var(--color-accent-primary)" />
               </BarChart>
             </ResponsiveContainer>
           </div>

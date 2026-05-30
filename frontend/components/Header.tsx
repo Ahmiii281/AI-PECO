@@ -29,34 +29,35 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     };
   }, []);
   return (
-    <header className="bg-black p-4 flex justify-between items-center z-10 border-b border-zinc-900 shadow-lg">
+    <header className="p-4 flex justify-between items-center z-10 border-b" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border-default)' }}>
       <div className="flex items-center">
         <button
           onClick={onMenuClick}
-          className="md:hidden mr-4 text-zinc-500 hover:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          className="md:hidden mr-4 text-[var(--color-sidebar-text)] hover:text-[var(--color-text-primary)] focus:outline-none"
           aria-label="Open sidebar"
         >
           <span className="sr-only">Open sidebar</span>
           <MenuIcon />
         </button>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tighter">AI<span className="text-emerald-500">-</span>PECO <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded ml-2 font-mono">OS_DASHBOARD</span></h1>
-          <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-[0.2em]">High Performance Energy Optimization</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tighter" style={{ color: 'var(--color-text-primary)' }}>AI<span className="" style={{ color: 'var(--color-accent-primary)', margin: '0 4px' }}>-</span>PECO <span className="ml-2 font-mono" style={{ backgroundColor: 'var(--color-accent-glow)', color: 'var(--color-accent-primary)', padding: '0.125rem 0.375rem', borderRadius: '6px', fontSize: '10px' }}>OS_DASHBOARD</span></h1>
+          <p className="text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: 'var(--color-text-secondary)' }}>High Performance Energy Optimization</p>
         </div>
       </div>
       <div className="flex items-center space-x-4">
         <div className="hidden sm:flex flex-col items-end text-right font-mono space-y-1">
           <div className="flex items-center space-x-2 text-[10px] uppercase tracking-widest">
             <span
-              className={`inline-flex h-1.5 w-1.5 rounded-full ${
-                backendOnline === null
-                  ? 'bg-zinc-700'
-                  : backendOnline
-                  ? 'bg-emerald-500 shadow-[0_0_10px_#00FF41] animate-pulse'
-                  : 'bg-red-600'
-              }`}
+              style={{
+                display: 'inline-block',
+                height: '6px',
+                width: '6px',
+                borderRadius: '999px',
+                backgroundColor: backendOnline === null ? 'var(--color-border-subtle)' : backendOnline ? 'var(--color-success)' : 'var(--color-danger)',
+                boxShadow: backendOnline ? '0 0 8px rgba(16,185,129,0.18)' : 'none'
+              }}
             />
-            <span className={backendOnline ? 'text-emerald-500' : 'text-zinc-600'}>
+            <span style={{ color: backendOnline ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
               SYS_{' '}
               {backendOnline === null
                 ? 'BOOTING'

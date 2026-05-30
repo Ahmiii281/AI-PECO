@@ -172,7 +172,7 @@ const DashboardView: React.FC = () => {
         {statsLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" aria-label="Loading stats">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-xl bg-gray-200 dark:bg-gray-700 h-28 animate-pulse" />
+              <div key={i} className="rounded-xl h-28 animate-pulse" style={{ backgroundColor: 'var(--color-bg-card-hover)' }} />
             ))}
           </div>
         ) : (
@@ -185,7 +185,7 @@ const DashboardView: React.FC = () => {
         )}
 
         {backendStats && (
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm" style={{ color: 'var(--color-text-secondary)' }}>
             <p>
               Backend live stats: {backendStats.device_count} device(s), avg temp {backendStats.avg_temperature.toFixed(1)}C, avg humidity{' '}
               {backendStats.avg_humidity.toFixed(1)}%.
@@ -209,7 +209,7 @@ const DashboardView: React.FC = () => {
 
         {/* RL Agent Status */}
         {rlSuggestion && rlSuggestion.current_state_summary && (
-          <div className="rounded border border-dashed border-cyan-500/30 bg-cyan-500/5 text-[9px] text-cyan-400 px-4 py-2 font-mono uppercase tracking-[0.15em] flex items-center gap-3">
+          <div className="rounded px-4 py-2 font-mono uppercase tracking-[0.15em] flex items-center gap-3" style={{ border: '1px dashed rgba(14,116,144,0.18)', backgroundColor: 'rgba(6,182,212,0.03)', color: 'var(--color-accent-primary-light)' }}>
             <span className="flex-shrink-0">RL_AGENT</span>
             <span>
               EPISODES: {rlSuggestion.episodes_trained} | CONFIDENCE: {rlSuggestion.confidence} | PWR: {rlSuggestion.current_state_summary.total_power_watts.toFixed(0)}W | TEMP: {rlSuggestion.current_state_summary.avg_temperature.toFixed(1)}C
@@ -219,8 +219,8 @@ const DashboardView: React.FC = () => {
 
         {/* Demo mode banner */}
         {isDemoMode && (
-          <div className="rounded border border-dashed border-emerald-500/30 bg-emerald-500/5 text-[9px] text-emerald-500 px-4 py-2 mb-6 font-mono uppercase tracking-[0.2em] flex items-center gap-2">
-            <span className="flex-shrink-0 animate-pulse">[!]</span>
+          <div className="rounded px-4 py-2 mb-6 font-mono uppercase tracking-[0.2em] flex items-center gap-2" style={{ border: '1px dashed rgba(16,185,129,0.18)', backgroundColor: 'rgba(16,185,129,0.03)', color: 'var(--color-success)' }}>
+            <span className="flex-shrink-0" style={{ animation: 'pulse 1.5s infinite' }}>[!]</span>
             <span>SYSTEM_SANDBOX_ACTIVE: TELEMETRY_SIMULATED</span>
           </div>
         )}
@@ -238,7 +238,7 @@ const DashboardView: React.FC = () => {
           <div className="space-y-8">
             <DeviceStatusList devices={devices} />
             <div className="pcb-card p-6">
-              <h3 className="text-xl font-semibold mb-4 text-white font-mono uppercase tracking-tighter">AI <span className="text-emerald-500">Recommendations</span></h3>
+              <h3 className="text-xl font-semibold mb-4 font-mono uppercase tracking-tighter" style={{ color: 'var(--color-text-primary)' }}>AI <span style={{ color: 'var(--color-accent-primary)' }}>Recommendations</span></h3>
               <div className="space-y-4">
                 {allRecommendations.map((rec) => (
                   <RecommendationCard key={rec.id} recommendation={rec} isAI={rec.id.startsWith('rl-')} />

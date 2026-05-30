@@ -18,8 +18,8 @@ const Login = lazy(() => import('./components/Login'));
 const Register = lazy(() => import('./components/Register'));
 
 const LoadingFallback = () => (
-  <div className="flex items-center justify-center h-full w-full bg-gray-50 dark:bg-gray-800">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+  <div className="flex items-center justify-center h-full w-full" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+    <div className="animate-spin rounded-full h-12 w-12" style={{ borderTop: '2px solid var(--color-accent-primary)', borderBottom: '2px solid var(--color-accent-primary)' }}></div>
   </div>
 );
 
@@ -49,7 +49,7 @@ const MainApp: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 font-sans">
+    <div className="flex h-screen font-sans" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
       <Sidebar
         activeView={activeView}
         setActiveView={setActiveView}
@@ -58,7 +58,7 @@ const MainApp: React.FC = () => {
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header onMenuClick={() => setIsSidebarOpen(true)} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-800">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
           <Suspense fallback={<LoadingFallback />}>
             {renderContent()}
           </Suspense>

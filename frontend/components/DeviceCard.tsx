@@ -10,9 +10,9 @@ interface DeviceCardProps {
 }
 
 const statusStyles: Record<DeviceStatus, { dot: string; text: string }> = {
-  [DeviceStatus.Online]: { dot: 'bg-green-500', text: 'text-green-500 dark:text-green-400' },
-  [DeviceStatus.Offline]: { dot: 'bg-red-500', text: 'text-red-500 dark:text-red-400' },
-  [DeviceStatus.Idle]: { dot: 'bg-yellow-500', text: 'text-yellow-500 dark:text-yellow-400' },
+  [DeviceStatus.Online]: { dot: 'bg-[var(--color-success)]', text: 'text-[var(--color-success)]' },
+  [DeviceStatus.Offline]: { dot: 'bg-[var(--color-danger)]', text: 'text-[var(--color-danger)]' },
+  [DeviceStatus.Idle]: { dot: 'bg-[var(--color-warning)]', text: 'text-[var(--color-warning)]' },
 };
 
 const DeviceCard: React.FC<DeviceCardProps> = ({ device, onToggle, onPowerChange, onDelete }) => {
@@ -71,15 +71,15 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onToggle, onPowerChange
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-700/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-transparent flex flex-col justify-between space-y-4 transform hover:-translate-y-1 transition-transform duration-300">
+      <div className="p-6 rounded-xl shadow-lg flex flex-col justify-between space-y-4 transform hover:-translate-y-1 transition-transform duration-300 bg-[var(--color-bg-card)] border border-[var(--color-border-default)]">
         {/* Header */}
         <div className="flex justify-between items-start">
           <div className="flex items-center space-x-4">
-            <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
               <ChipIcon />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{device.name}</h3>
+              <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>{device.name}</h3>
               <div className="flex items-center mt-1 space-x-2">
                 <span className={`h-2.5 w-2.5 rounded-full ${statusStyles[device.status].dot}`}></span>
                 <p className={`text-sm font-semibold ${statusStyles[device.status].text}`}>{device.status}</p>
@@ -95,7 +95,8 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onToggle, onPowerChange
           <div className="flex items-center space-x-3">
             <button
               onClick={requestDelete}
-              className="text-gray-400 hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-full p-1"
+              className="focus:outline-none rounded-full p-1"
+              style={{ color: 'var(--color-text-secondary)' }}
               aria-label={`Remove ${device.name}`}
             >
               <TrashIcon />
@@ -108,19 +109,19 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onToggle, onPowerChange
                 checked={isOnline}
                 onChange={handleToggleChange}
               />
-              <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+              <div className="w-11 h-6 rounded-full peer peer-focus:ring-2 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all" style={{ backgroundColor: 'var(--color-border-default)' }} data-checked-bg="var(--color-accent-primary)"></div>
             </label>
           </div>
         </div>
 
         {/* Power Info */}
         <div className="text-center">
-          <p className={`text-5xl font-mono font-bold transition-colors duration-300 ${powerColorClass}`}>{device.power}<span className="text-2xl text-gray-500 dark:text-gray-400">W</span></p>
+          <p className={`text-5xl font-mono font-bold transition-colors duration-300 ${powerColorClass}`}>{device.power}<span className="text-2xl" style={{ color: 'var(--color-text-secondary)' }}>W</span></p>
         </div>
 
         {/* Power Slider */}
         <div className="space-y-2">
-          <label htmlFor={`slider-${device.id}`} className="text-sm font-medium text-gray-500 dark:text-gray-400">
+          <label htmlFor={`slider-${device.id}`} className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
             Power Level
           </label>
           <input
@@ -132,17 +133,18 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onToggle, onPowerChange
             onChange={handleSliderChange}
             disabled={!isOnline || !device.isAdjustable}
             className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer
-                       [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-green-600
+                       [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--color-accent-primary)]
                        disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
         {/* Tips Section */}
         {device.tips && device.tips.length > 0 && (
-          <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+            <div className="border-t pt-4" style={{ borderColor: 'var(--color-border-default)' }}>
             <button
               onClick={() => setIsTipsVisible(!isTipsVisible)}
-              className="w-full flex justify-between items-center text-left text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              className="w-full flex justify-between items-center text-left text-sm font-medium"
+              style={{ color: 'var(--color-text-secondary)' }}
             >
               <div className="flex items-center space-x-2">
                 <LightBulbIcon />
@@ -158,8 +160,8 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onToggle, onPowerChange
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isTipsVisible ? 'max-h-40 opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
-              <ul className="list-disc list-inside space-y-1 text-xs text-gray-500 dark:text-gray-400 pl-2">
+              <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isTipsVisible ? 'max-h-40 opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
+              <ul className="list-disc list-inside space-y-1 text-xs pl-2" style={{ color: 'var(--color-text-secondary)' }}>
                 {device.tips.map((tip, index) => (
                   <li key={index}>{tip}</li>
                 ))}

@@ -47,19 +47,19 @@ export default function BillingView() {
 
   return (
     <div className="dashboard-container">
-      <h1 className="text-3xl font-bold text-green-500 mb-6">Electricity Bill Estimation (FESCO)</h1>
-      <p className="text-gray-400 mb-8">Calculate your estimated monthly bill based on current FESCO tariff slabs.</p>
+      <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--color-accent-primary)' }}>Electricity Bill Estimation (FESCO)</h1>
+      <p className="mb-8" style={{ color: 'var(--color-text-secondary)' }}>Calculate your estimated monthly bill based on current FESCO tariff slabs.</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Input Form */}
-        <div className="bg-[#121212] p-6 rounded-xl border border-[#1A1A1A] shadow-lg">
-          <h2 className="text-xl font-semibold mb-4 text-white">Estimation Parameters</h2>
+        <div className="bg-[var(--color-bg-card)] p-6 rounded-xl border border-[var(--color-border-default)] shadow-lg">
+          <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>Estimation Parameters</h2>
           <form onSubmit={handleEstimate} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col">
-                <label className="text-sm text-gray-400 mb-1">Consumer Category</label>
+                <label className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Consumer Category</label>
                 <select 
-                  className="bg-[#1A1A1A] border border-[#333] p-2 rounded text-white focus:border-green-500 outline-none"
+                  className="bg-[var(--color-bg-input)] border border-[var(--color-border-default)] p-2 rounded text-[var(--color-text-primary)] focus:outline-none"
                   value={formData.consumer_type}
                   onChange={(e) => setFormData({...formData, consumer_type: e.target.value})}
                 >
@@ -68,9 +68,9 @@ export default function BillingView() {
               </div>
 
               <div className="flex flex-col">
-                <label className="text-sm text-gray-400 mb-1">Phase Type</label>
+                <label className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Phase Type</label>
                 <select 
-                  className="bg-[#1A1A1A] border border-[#333] p-2 rounded text-white focus:border-green-500 outline-none"
+                  className="bg-[var(--color-bg-input)] border border-[var(--color-border-default)] p-2 rounded text-[var(--color-text-primary)] focus:outline-none"
                   value={formData.phase}
                   onChange={(e) => setFormData({...formData, phase: parseInt(e.target.value)})}
                 >
@@ -81,10 +81,10 @@ export default function BillingView() {
             </div>
 
             <div className="flex flex-col">
-              <label className="text-sm text-gray-400 mb-1">Total Units Consumed (kWh)</label>
+              <label className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Total Units Consumed (kWh)</label>
               <input 
                 type="number" 
-                className="bg-[#1A1A1A] border border-[#333] p-2 rounded text-white focus:border-green-500 outline-none"
+                className="bg-[var(--color-bg-input)] border border-[var(--color-border-default)] p-2 rounded text-[var(--color-text-primary)] focus:outline-none"
                 value={formData.units}
                 onChange={(e) => setFormData({...formData, units: parseFloat(e.target.value)})}
               />
@@ -97,19 +97,19 @@ export default function BillingView() {
                   id="is_protected"
                   checked={formData.is_protected}
                   onChange={(e) => setFormData({...formData, is_protected: e.target.checked})}
-                  className="w-4 h-4 accent-green-500"
+                  className="w-4 h-4" style={{ accentColor: 'var(--color-success)' }}
                 />
-                <label htmlFor="is_protected" className="text-sm text-gray-300">Protected Consumer (Usage consistently &lt; 200 units)</label>
+                <label htmlFor="is_protected" className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Protected Consumer (Usage consistently &lt; 200 units)</label>
               </div>
             )}
 
             <div className="grid grid-cols-2 gap-4">
                <div className="flex flex-col">
-                <label className="text-sm text-gray-400 mb-1">Sanctioned Load (kW)</label>
+                <label className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Sanctioned Load (kW)</label>
                 <input 
                   type="number" 
                   step="0.1"
-                  className="bg-[#1A1A1A] border border-[#333] p-2 rounded text-white focus:border-green-500 outline-none"
+                  className="bg-[var(--color-bg-input)] border border-[var(--color-border-default)] p-2 rounded text-[var(--color-text-primary)] focus:outline-none"
                   value={formData.sanctioned_load}
                   onChange={(e) => setFormData({...formData, sanctioned_load: parseFloat(e.target.value)})}
                 />
@@ -119,19 +119,19 @@ export default function BillingView() {
             {(formData.sanctioned_load >= 5 || formData.consumer_type === 'A-2') && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col">
-                  <label className="text-sm text-gray-400 mb-1">Peak Units</label>
+                  <label className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Peak Units</label>
                   <input 
                     type="number" 
-                    className="bg-[#1A1A1A] border border-[#333] p-2 rounded text-white focus:border-green-500 outline-none"
+                    className="bg-[var(--color-bg-input)] border border-[var(--color-border-default)] p-2 rounded text-[var(--color-text-primary)] focus:outline-none"
                     value={formData.peak_units}
                     onChange={(e) => setFormData({...formData, peak_units: parseFloat(e.target.value)})}
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="text-sm text-gray-400 mb-1">Off-Peak Units</label>
+                  <label className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Off-Peak Units</label>
                   <input 
                     type="number" 
-                    className="bg-[#1A1A1A] border border-[#333] p-2 rounded text-white focus:border-green-500 outline-none"
+                    className="bg-[var(--color-bg-input)] border border-[var(--color-border-default)] p-2 rounded text-[var(--color-text-primary)] focus:outline-none"
                     value={formData.offpeak_units}
                     onChange={(e) => setFormData({...formData, offpeak_units: parseFloat(e.target.value)})}
                   />
@@ -142,7 +142,8 @@ export default function BillingView() {
             <button 
               type="submit"
               disabled={loading}
-              className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 rounded-lg transition-all shadow-lg hover:shadow-green-500/20"
+              className="w-full text-black font-bold py-3 rounded-lg transition-all shadow-lg"
+              style={{ backgroundColor: 'var(--color-accent-primary)', boxShadow: '0 10px 30px rgba(6,182,212,0.06)' }}
             >
               {loading ? 'Calculating...' : 'Generate Estimate'}
             </button>
@@ -151,32 +152,32 @@ export default function BillingView() {
         </div>
 
         {/* Results Section */}
-        <div className="bg-[#121212] p-6 rounded-xl border border-[#1A1A1A] shadow-lg flex flex-col">
+        <div className="p-6 rounded-xl shadow-lg flex flex-col" style={{ backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border-default)' }}>
           {result ? (
             <>
-              <h2 className="text-xl font-semibold mb-2 text-white">Bill Summary</h2>
-              <p className="text-sm text-gray-400 mb-6">Category: <span className="text-green-500">{result.consumer_type}</span></p>
+              <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Bill Summary</h2>
+              <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>Category: <span style={{ color: 'var(--color-accent-primary)' }}>{result.consumer_type}</span></p>
               
-              <div className="text-center py-6 bg-[#1A1A1A] rounded-lg border border-[#333] mb-8">
-                <p className="text-gray-400 text-sm uppercase tracking-wider">Estimated Total Bill</p>
-                <h3 className="text-5xl font-bold text-green-500 mt-2">Rs. {result.total_bill.toLocaleString()}</h3>
-                <p className="text-xs text-gray-500 mt-2">*Inclusive of energy & fixed charges</p>
+              <div className="text-center py-6 rounded-lg mb-8" style={{ backgroundColor: 'var(--color-bg-input)', border: '1px solid var(--color-border-default)' }}>
+                <p className="text-sm uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>Estimated Total Bill</p>
+                <h3 className="text-5xl font-bold mt-2" style={{ color: 'var(--color-accent-primary)' }}>Rs. {result.total_bill.toLocaleString()}</h3>
+                <p className="text-xs mt-2" style={{ color: 'var(--color-text-secondary)' }}>*Inclusive of energy & fixed charges</p>
               </div>
 
               <div className="space-y-4 flex-1">
-                <h4 className="text-sm font-bold text-gray-300 border-b border-[#333] pb-1">Cost Breakdown</h4>
+                <h4 className="text-sm font-bold border-b pb-1" style={{ color: 'var(--color-text-secondary)', borderColor: 'var(--color-border-default)' }}>Cost Breakdown</h4>
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                   {result.breakdown.map((item: any, idx: number) => (
                     <div key={idx} className="flex justify-between text-sm">
-                      <span className="text-gray-400">{item.slab} {item.units > 0 ? `(${item.units} units @ ${item.rate})` : ''}</span>
-                      <span className="text-white font-medium">Rs. {item.cost.toLocaleString()}</span>
+                      <span style={{ color: 'var(--color-text-secondary)' }}>{item.slab} {item.units > 0 ? `(${item.units} units @ ${item.rate})` : ''}</span>
+                      <span style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>Rs. {item.cost.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
                 
-                <div className="flex justify-between border-t border-[#333] pt-4">
-                  <span className="text-gray-300 font-semibold">Fixed Charges</span>
-                  <span className="text-white font-bold">Rs. {result.fixed_charges.toLocaleString()}</span>
+                <div className="flex justify-between pt-4" style={{ borderTop: '1px solid var(--color-border-default)' }}>
+                  <span style={{ color: 'var(--color-text-secondary)', fontWeight: 600 }}>Fixed Charges</span>
+                  <span style={{ color: 'var(--color-text-primary)', fontWeight: 700 }}>Rs. {result.fixed_charges.toLocaleString()}</span>
                 </div>
               </div>
 

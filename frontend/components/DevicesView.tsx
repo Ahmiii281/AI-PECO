@@ -233,16 +233,16 @@ const DevicesView: React.FC = () => {
       <div className="p-4 md:p-6 lg:p-8 space-y-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Device Control</h1>
-            <p className="text-md text-gray-500 dark:text-gray-400">
+            <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Device Control</h1>
+            <p className="text-md" style={{ color: 'var(--color-text-secondary)' }}>
               Remotely manage and monitor your devices{isDemoMode ? ' using a demo library of sample appliances.' : '.'}
             </p>
           </div>
           <div className="w-full sm:w-auto text-left sm:text-right">
-              <p className="text-lg font-semibold text-gray-500 dark:text-gray-400">
+              <p className="text-lg font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
                 Total Live Power {isBackendMode && '(backend devices)'}
               </p>
-              <p className="text-4xl font-bold text-green-600 dark:text-green-400">{(totalPower / 1000).toFixed(2)} kW</p>
+              <p className="text-4xl font-bold" style={{ color: 'var(--color-accent-primary)' }}>{(totalPower / 1000).toFixed(2)} kW</p>
           </div>
         </div>
         <AddDeviceCard onAdd={handleAddDevice} />
@@ -250,24 +250,25 @@ const DevicesView: React.FC = () => {
         {isLoadingBackend ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" aria-label="Loading devices">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-xl bg-gray-200 dark:bg-gray-700 h-48 animate-pulse" />
+              <div key={i} className="rounded-xl h-48 animate-pulse" style={{ backgroundColor: 'var(--color-bg-card-hover)' }} />
             ))}
           </div>
         ) : loadError ? (
           <div className="flex flex-col items-center gap-3 py-12 text-center">
-            <p className="text-yellow-600 dark:text-yellow-400 font-medium">⚠️ {loadError}</p>
+            <p className="font-medium" style={{ color: 'var(--color-warning)' }}>⚠️ {loadError}</p>
             <button
               onClick={() => setIsLoadingBackend(true)}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{ backgroundColor: 'var(--color-accent-primary)', color: 'black' }}
             >
               Retry
             </button>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Showing demo devices below.</p>
+            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Showing demo devices below.</p>
           </div>
         ) : devices.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <p className="text-gray-500 dark:text-gray-400 text-lg">No devices yet.</p>
-            <p className="text-sm text-gray-400">Use the panel above to add your first device.</p>
+            <p className="text-lg" style={{ color: 'var(--color-text-secondary)' }}>No devices yet.</p>
+            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Use the panel above to add your first device.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
