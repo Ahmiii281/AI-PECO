@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database import get_db
 from services.auth_service import AuthService
-from schemas import UserRegister, UserLogin, TokenResponse, UserResponse
+from schemas import UserRegister, UserLogin, TokenResponse, UserResponse, ResetPasswordWithToken, PasswordResetRequest
 from utils.jwt import decode_token
 from utils.rate_limit import limiter
 from datetime import datetime
@@ -179,4 +179,25 @@ async def forgot_password(request: Request, payload: ForgotPasswordRequest):
         print(f"Password reset token for {email}: {token}")
 
     return {"message": "If this email is registered, a reset link has been sent."}
+
+
+@router.post("/reset-password")
+@limiter.limit("5/minute")
+async def reset_password(request: Request, payload: ResetPasswordWithToken):
+    """
+    Reset user password using a reset token
+    """
+    db = get_db()
+    auth_service = AuthService(db)
+
+    try:
+        user = await auth_service.reset_password(payload.token, payload.new_password)
+        return {
+            "message": "Password reset successfully",
+            "id": str(user["_id"]),
+            "name": user["name"],
+            "email": user["email"],
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 

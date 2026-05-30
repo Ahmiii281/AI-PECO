@@ -44,13 +44,25 @@ const apiCall = async (
         localStorage.removeItem("user");
         window.location.href = "/login";
       }
-      throw new Error(`HTTP Error: ${response.status}`);
+      
+      let errorMessage = `HTTP Error: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.detail) {
+          errorMessage = errorData.detail;
+        }
+      } catch {
+        // If response is not JSON, use default message
+      }
+      
+      throw new Error(errorMessage);
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error(`API Error [${method} ${endpoint}]:`, error);
-    throw error;
+    // Re-throw with proper error message
+    throw new Error(error.message || `Request failed: ${method} ${endpoint}`);
   }
 };
 
@@ -64,6 +76,9 @@ export const authAPI = {
 
   forgotPassword: (email: string) =>
     apiCall("/api/auth/forgot-password", "POST", { email }),
+
+  resetPassword: (token: string, newPassword: string) =>
+    apiCall("/api/auth/reset-password", "POST", { token, new_password: newPassword }),
 
   getProfile: () => apiCall("/api/auth/me", "GET"),
 };

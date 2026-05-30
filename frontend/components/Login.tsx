@@ -7,9 +7,12 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [view, setView] = useState<'login' | 'forgot'>('login');
+  const [view, setView] = useState<'login' | 'forgot' | 'reset'>('login');
   const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,9 +37,38 @@ export default function Login() {
     setLoading(true);
     try {
       await authService.forgotPassword(email);
-      setSuccessMessage('Check your inbox for a reset link.');
+      setSuccessMessage('Check your email for the reset token. Paste it below to reset your password.');
+      setView('reset');
     } catch (err: any) {
       setError(err.message || 'Failed to send reset link');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await authService.resetPassword(resetToken, newPassword);
+      setSuccessMessage('Password reset successfully! Redirecting to login...');
+      setTimeout(() => {
+        setView('login');
+        setResetToken('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setEmail('');
+      }, 2000);
+    } catch (err: any) {
+      setError(err.message || 'Password reset failed');
     } finally {
       setLoading(false);
     }
@@ -105,8 +137,8 @@ export default function Login() {
               ← Back to Login
             </button>
 
-            <h2 style={{ marginTop: '0.5rem' }}>Reset Password</h2>
-            <p style={{ color: '#b0b0b0' }}>Enter your email and we'll send you a reset link.</p>
+            <h2 style={{ marginTop: '0.5rem' }}>Request Password Reset</h2>
+            <p style={{ color: '#b0b0b0' }}>Enter your email and we'll send you a reset token.</p>
 
             {successMessage && <div className="success-message">{successMessage}</div>}
 
@@ -123,7 +155,63 @@ export default function Login() {
               </div>
 
               <button type="submit" disabled={loading}>
-                {loading ? 'Sending...' : 'Send Reset Link'}
+                {loading ? 'Sending...' : 'Send Reset Token'}
+              </button>
+            </form>
+          </>
+        )}
+
+        {view === 'reset' && (
+          <>
+            <button
+              type="button"
+              className="back-link"
+              onClick={() => { setView('login'); setError(''); setSuccessMessage(''); }}
+            >
+              ← Back to Login
+            </button>
+
+            <h2 style={{ marginTop: '0.5rem' }}>Reset Password</h2>
+            <p style={{ color: '#b0b0b0' }}>Paste the token from your email and enter a new password.</p>
+
+            {successMessage && <div className="success-message">{successMessage}</div>}
+
+            <form onSubmit={handleResetSubmit}>
+              <div className="form-group">
+                <label>Reset Token</label>
+                <input
+                  type="text"
+                  value={resetToken}
+                  onChange={(e) => setResetToken(e.target.value)}
+                  placeholder="Paste your reset token here"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <button type="submit" disabled={loading}>
+                {loading ? 'Resetting...' : 'Reset Password'}
               </button>
             </form>
           </>

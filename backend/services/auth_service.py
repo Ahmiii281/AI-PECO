@@ -1,7 +1,7 @@
 """
 Authentication service
 """
-from datetime import timedelta
+from datetime import timedelta, datetime
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from utils.password import hash_password, verify_password
@@ -29,6 +29,7 @@ class AuthService:
             "role": "user",
             "energy_limit": 50.0,
             "is_active": True,
+            "created_at": datetime.utcnow(),
         }
 
         result = await self.users_collection.insert_one(user_doc)
@@ -92,3 +93,47 @@ class AuthService:
             raise ValueError("User not found")
 
         return result
+
+    async def request_password_reset(self, email: str, reset_token: str, token_expiry: datetime) -> bool:
+        """
+        Store password reset token for a user
+        Returns True if email exists, False otherwise
+        """
+        result = await self.users_collection.update_one(
+            {"email": email},
+            {
+                "$set": {
+                    "reset_token": reset_token,
+                    "reset_token_expiry": token_expiry
+                }
+            }
+        )
+        return result.matched_count > 0
+
+    async def reset_password(self, reset_token: str, new_password: str) -> dict:
+        """
+        Reset user password using a reset token
+        """
+        # Find user with valid reset token
+        user = await self.users_collection.find_one({
+            "reset_token": reset_token,
+            "reset_token_expiry": {"$gt": datetime.utcnow()}
+        })
+
+        if not user:
+            raise ValueError("Invalid or expired reset token")
+
+        # Update password and clear reset token
+        updated_user = await self.users_collection.find_one_and_update(
+            {"_id": user["_id"]},
+            {
+                "$set": {
+                    "password_hash": hash_password(new_password),
+                    "reset_token": None,
+                    "reset_token_expiry": None
+                }
+            },
+            return_document=True
+        )
+
+        return updated_user

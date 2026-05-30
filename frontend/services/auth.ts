@@ -82,6 +82,15 @@ class AuthService {
     }
   }
 
+  async resetPassword(token: string, newPassword: string): Promise<any> {
+    try {
+      const res = await authAPI.resetPassword(token, newPassword);
+      return res;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   setToken(token: string) {
     this.token = token;
     localStorage.setItem("access_token", token);

@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     
     # Database
     MONGODB_URL: str = "mongodb://localhost:27017"
-    DATABASE_NAME: str = "aipeco_db"
+    DATABASE_NAME: str = "ba341914_db_users"
     
     # JWT - CRITICAL: Must be set from environment in production
     SECRET_KEY: str = ""
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     DEMO_MODE: bool = True
 
     # Server port (overridden by Render/Railway via PORT env var)
-    PORT: int = 8000
+    PORT: int = 8080
 
     # Features
     ENABLE_AI_PREDICTIONS: bool = True
@@ -52,21 +52,28 @@ class Settings(BaseSettings):
     @field_validator("SECRET_KEY", mode="after")
     @classmethod
     def validate_secret_key(cls, v):
-        """Ensure SECRET_KEY is configured in production."""
+        """Ensure SECRET_KEY is configured properly."""
+        import os
+        
+        # In production (when PORT or other env vars are set), SECRET_KEY is mandatory
+        is_production = not os.getenv("DEBUG", "false").lower() == "true"
+        
         if not v:
-            # Use default for development, but warn
-            if os.getenv("DEBUG", "false").lower() == "true":
-                import secrets
-                return secrets.token_urlsafe(32)
-            raise ValueError(
-                "SECRET_KEY must be set in .env for production. "
-                "Generate one: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
-            )
+            if is_production:
+                raise ValueError(
+                    "SECRET_KEY must be set in environment variables for production. "
+                    "Generate one: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+                )
+            # For development, generate a temporary key
+            import secrets
+            return secrets.token_urlsafe(32)
+        
         if v == "change_me_in_production":
             raise ValueError(
                 "SECRET_KEY is using unsafe default value 'change_me_in_production'. "
-                "Please set a strong random value in .env"
+                "Please set a strong random value in environment variables."
             )
+        
         return v
     
     class Config:

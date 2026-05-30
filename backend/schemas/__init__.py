@@ -1,7 +1,7 @@
 """
 Pydantic schemas for API requests/responses
 """
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from datetime import datetime
 
@@ -34,6 +34,24 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: Optional[UserResponse] = None
+
+
+class PasswordResetRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordWithToken(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=8, max_length=100)
+    
+    @field_validator('new_password')
+    @classmethod
+    def validate_password(cls, v):
+        if not any(c.isupper() for c in v):
+            raise ValueError('Password must contain uppercase letter')
+        if not any(c.isdigit() for c in v):
+            raise ValueError('Password must contain digit')
+        return v
 
 
 # Device Schemas
