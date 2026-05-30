@@ -56,14 +56,9 @@ backend/venv_run/
 # =========================
 
 # Dataset
-backend/ai/data/household_power_consumption.txt
+ml/training/data/household_power_consumption.txt
 ml/datasets/
-
-# Trained models
-backend/ai/saved_models/*.keras
-backend/ai/saved_models/*.pkl
-backend/ai/saved_models/*.json
-backend/ai/saved_models/training_plots/
+ml/data/
 
 # Large ML artifacts
 *.h5
