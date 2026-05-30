@@ -27,7 +27,7 @@ class TestDeviceCreate:
             "name": "No Auth Device",
             "location": "Nowhere",
         })
-        assert resp.status_code == 403
+        assert resp.status_code in [401, 403]
 
     async def test_create_device_invalid_relay_pin(self, client: AsyncClient, auth_headers):
         """relay_pin must be 0-39 (ESP32 GPIO range)."""

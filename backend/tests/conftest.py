@@ -54,6 +54,8 @@ async def app(mock_db):
     with patch.object(database, "_db", mock_db):
         with patch.object(database, "_client", AsyncMock()):
             from main import app as fastapi_app
+            from utils.rate_limit import limiter
+            limiter.enabled = False
             yield fastapi_app
 
 

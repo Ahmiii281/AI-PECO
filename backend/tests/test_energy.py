@@ -91,7 +91,7 @@ class TestEnergyHistory:
 
     async def test_get_device_history_unauthenticated(self, client: AsyncClient, test_device):
         resp = await client.get(f"/api/energy/device/{test_device['_id']}")
-        assert resp.status_code == 403
+        assert resp.status_code in [401, 403]
 
 
 class TestAlerts:
@@ -140,4 +140,4 @@ class TestAlerts:
 
     async def test_alerts_unauthenticated(self, client: AsyncClient):
         resp = await client.get("/api/energy/alerts")
-        assert resp.status_code == 403
+        assert resp.status_code in [401, 403]

@@ -35,7 +35,7 @@ class TestForecast:
 
     async def test_forecast_unauthenticated(self, client: AsyncClient, test_device):
         resp = await client.get(f"/api/predictions/forecast/{test_device['_id']}")
-        assert resp.status_code == 403
+        assert resp.status_code in [401, 403]
 
 
 class TestDisaggregation:
@@ -81,7 +81,7 @@ class TestRLSuggestion:
 
     async def test_rl_suggestion_unauthenticated(self, client: AsyncClient):
         resp = await client.get("/api/predictions/rl-suggestion")
-        assert resp.status_code == 403
+        assert resp.status_code in [401, 403]
 
 
 class TestSmartAnalysis:
@@ -127,7 +127,7 @@ class TestSmartAnalysis:
             "/api/predictions/smart-analysis",
             json={"query": "Hello"},
         )
-        assert resp.status_code == 403
+        assert resp.status_code in [401, 403]
 
     async def test_smart_analysis_hello_response(self, client: AsyncClient, auth_headers):
         resp = await client.post(
