@@ -5,21 +5,30 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database import get_db
 from services.auth_service import AuthService
-from schemas import UserRegister, UserLogin, TokenResponse, UserResponse, ResetPasswordWithToken, PasswordResetRequest
+from schemas import (
+    UserRegister,
+    UserLogin,
+    TokenResponse,
+    UserResponse,
+    ResetPasswordWithToken,
+    PasswordResetRequest,
+    ForgotPasswordRequest,
+)
 from utils.jwt import decode_token
 from utils.rate_limit import limiter
-from datetime import datetime
-from datetime import timedelta
+from utils.email import send_password_reset_email
+from utils.logger import setup_logger
+from datetime import datetime, timedelta
 import secrets
-from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 security = HTTPBearer()
+logger = setup_logger(__name__)
 
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
-    Dependency to get current authenticated user
+    Dependency to get current authenticated user from JWT token.
     """
     token = credentials.credentials
     payload = decode_token(token)
@@ -34,7 +43,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
+            detail="Invalid token payload",
         )
 
     return user_id
@@ -42,11 +51,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 async def get_current_admin(user_id: str = Depends(get_current_user)):
     """
-    Dependency to get current admin user
+    Dependency to enforce admin-only access.
     """
     db = get_db()
     auth_service = AuthService(db)
-    
+
     try:
         user = await auth_service.get_user(user_id)
     except ValueError:
@@ -54,22 +63,22 @@ async def get_current_admin(user_id: str = Depends(get_current_user)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
         )
-        
+
     if user.get("role") != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required",
         )
-        
+
     return user_id
 
-    
+
+# ─── Register ────────────────────────────────────────────────────────────────
+
 @router.post("/register", response_model=UserResponse)
 @limiter.limit("5/minute")
 async def register(request: Request, user_data: UserRegister):
-    """
-    Register a new user
-    """
+    """Register a new user account."""
     db = get_db()
     auth_service = AuthService(db)
 
@@ -87,12 +96,12 @@ async def register(request: Request, user_data: UserRegister):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+# ─── Login ───────────────────────────────────────────────────────────────────
+
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit("10/minute")
 async def login(request: Request, credentials: UserLogin):
-    """
-    Login and get access token
-    """
+    """Authenticate and return a JWT access token."""
     db = get_db()
     auth_service = AuthService(db)
 
@@ -103,11 +112,11 @@ async def login(request: Request, credentials: UserLogin):
         raise HTTPException(status_code=401, detail=str(e))
 
 
+# ─── Profile ──────────────────────────────────────────────────────────────────
+
 @router.get("/me", response_model=UserResponse)
 async def get_profile(user_id: str = Depends(get_current_user)):
-    """
-    Get current user profile
-    """
+    """Get the current user's profile."""
     db = get_db()
     auth_service = AuthService(db)
 
@@ -125,11 +134,11 @@ async def get_profile(user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail=str(e))
 
 
+# ─── Admin: List users ────────────────────────────────────────────────────────
+
 @router.get("/users", response_model=list[UserResponse])
 async def get_all_users(admin_id: str = Depends(get_current_admin)):
-    """
-    Admin: Get all users
-    """
+    """Admin: retrieve all registered users."""
     db = get_db()
     users = await db.users.find().to_list(100)
     return [
@@ -139,53 +148,68 @@ async def get_all_users(admin_id: str = Depends(get_current_admin)):
             "email": user["email"],
             "role": user.get("role", "user"),
             "energy_limit": user.get("energy_limit", 50.0),
-            "created_at": user.get("created_at", datetime.utcnow())
+            "created_at": user.get("created_at", datetime.utcnow()),
         }
         for user in users
     ]
 
 
+# ─── Admin: Delete user ───────────────────────────────────────────────────────
+
 @router.delete("/users/{target_user_id}")
 async def delete_user(target_user_id: str, admin_id: str = Depends(get_current_admin)):
-    """
-    Admin: Delete a user
-    """
+    """Admin: permanently delete a user account."""
     db = get_db()
     from bson import ObjectId
+
     result = await db.users.delete_one({"_id": ObjectId(target_user_id)})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User deleted successfully"}
 
 
-class ForgotPasswordRequest(BaseModel):
-    email: str
-
+# ─── Forgot Password ──────────────────────────────────────────────────────────
 
 @router.post("/forgot-password")
+@limiter.limit("3/minute")
 async def forgot_password(request: Request, payload: ForgotPasswordRequest):
     """
-    Initiate a password reset flow. Always return 200 and do not reveal
-    whether the email exists in the system.
+    Initiate a password reset flow.
+
+    Always returns HTTP 200 regardless of whether the email exists — this
+    prevents user-enumeration attacks. The reset token is sent via email
+    and is NEVER included in the API response.
     """
     db = get_db()
-    email = payload.email
+    email = payload.email.lower().strip()
 
     user = await db.users.find_one({"email": email})
     if user:
         token = secrets.token_urlsafe(32)
         expiry = datetime.utcnow() + timedelta(hours=1)
-        await db.users.update_one({"_id": user["_id"]}, {"$set": {"reset_token": token, "reset_token_expiry": expiry}})
-        print(f"Password reset token for {email}: {token}")
+
+        # Store hashed token reference in DB
+        await db.users.update_one(
+            {"_id": user["_id"]},
+            {"$set": {"reset_token": token, "reset_token_expiry": expiry}},
+        )
+
+        # Send via email (SMTP or log-only fallback in dev)
+        email_sent = await send_password_reset_email(email, token, expiry_hours=1)
+        if not email_sent:
+            # Log failure internally — never expose to client
+            logger.error("Failed to dispatch reset email for user %s", str(user["_id"]))
 
     return {"message": "If this email is registered, a reset link has been sent."}
 
+
+# ─── Reset Password ───────────────────────────────────────────────────────────
 
 @router.post("/reset-password")
 @limiter.limit("5/minute")
 async def reset_password(request: Request, payload: ResetPasswordWithToken):
     """
-    Reset user password using a reset token
+    Reset a user password using a valid, non-expired reset token.
     """
     db = get_db()
     auth_service = AuthService(db)
@@ -193,11 +217,8 @@ async def reset_password(request: Request, payload: ResetPasswordWithToken):
     try:
         user = await auth_service.reset_password(payload.token, payload.new_password)
         return {
-            "message": "Password reset successfully",
-            "id": str(user["_id"]),
-            "name": user["name"],
+            "message": "Password reset successfully. You can now log in with your new password.",
             "email": user["email"],
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-

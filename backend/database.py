@@ -1,110 +1,160 @@
 """
-Database initialization and connections
+Database initialization and connection management.
+
+Design:
+- Production (DEBUG=False): fails fast if MongoDB is unreachable — no silent fallbacks.
+- Development (DEBUG=True): falls back to an in-memory mock DB so the app
+  starts without a real MongoDB instance.
+- `get_db()` raises HTTP 503 if called before the DB is connected, preventing
+  cryptic NoneType crashes deep in route handlers.
 """
+import logging
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+from fastapi import HTTPException, status
 from config import settings
 from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
-# Global database instance
-client: AsyncIOMotorClient = None
-db: AsyncIOMotorDatabase = None
+# ─── Module-level state ───────────────────────────────────────────────────────
+_client: AsyncIOMotorClient | None = None
+_db: AsyncIOMotorDatabase | None = None
+_using_mock: bool = False
 
 
-async def connect_db():
+# ─── Lifecycle ────────────────────────────────────────────────────────────────
+
+async def connect_db() -> None:
     """
-    Connect to MongoDB with fallback to mock for local dev
+    Connect to MongoDB on application startup.
+
+    Production: raises SystemExit if the connection cannot be established.
+    Development: falls back to mongomock-motor (in-memory, data not persisted).
     """
-    global client, db
-    
+    global _client, _db, _using_mock
+
     try:
-        # Use a short timeout for local detection
-        client = AsyncIOMotorClient(
-            settings.MONGODB_URL, 
-            serverSelectionTimeoutMS=2000,
-            connectTimeoutMS=2000
+        _client = AsyncIOMotorClient(
+            settings.MONGODB_URL,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
         )
-        # Verify connection
-        await client.admin.command('ping')
-        db = client[settings.DATABASE_NAME]
-        await create_indexes()
-        logger.info("✓ Connected to MongoDB")
-    except Exception as e:
-        logger.warning(f"⚠️ Real MongoDB connection failed: {e}")
-        logger.info("🔄 Falling back to Mock Database for development...")
-        from mongomock_motor import AsyncMongoMockClient as MockClient
-        client = MockClient()
-        db = client[settings.DATABASE_NAME]
-        await create_indexes()
-        await seed_db()
-        logger.info("✓ Using Mock MongoDB (Data will NOT persist)")
+        # Verify the connection is actually reachable
+        await _client.admin.command("ping")
+        _db = _client[settings.DATABASE_NAME]
+        _using_mock = False
+        await _create_indexes()
+        logger.info("✓ Connected to MongoDB at %s", settings.MONGODB_URL)
+
+    except Exception as exc:
+        if not settings.DEBUG:
+            logger.critical(
+                "MongoDB connection FAILED in production mode.\n"
+                "URL: %s\nError: %s\n\n"
+                "Fix: Ensure MONGODB_URL is correct and the database is reachable.\n"
+                "The application cannot start without a database connection.",
+                settings.MONGODB_URL,
+                exc,
+            )
+            raise SystemExit(1) from exc
+
+        # Development only: use in-memory mock
+        logger.warning(
+            "⚠️  MongoDB unavailable (%s). "
+            "Falling back to in-memory mock database (data will NOT persist). "
+            "This fallback is disabled in production.",
+            exc,
+        )
+        try:
+            from mongomock_motor import AsyncMongoMockClient  # type: ignore
+            _client = AsyncMongoMockClient()
+            _db = _client[settings.DATABASE_NAME]
+            _using_mock = True
+            await _create_indexes()
+            await _seed_mock_db()
+            logger.info("✓ Using mock MongoDB (development only)")
+        except ImportError:
+            logger.critical(
+                "mongomock-motor is not installed and MongoDB is unavailable. "
+                "Install it with: pip install mongomock-motor"
+            )
+            raise SystemExit(1) from exc
 
 
-async def seed_db():
+async def close_db() -> None:
+    """Close the database connection on application shutdown."""
+    global _client, _db, _using_mock
+    if _client is not None:
+        _client.close()
+        logger.info("✓ Disconnected from MongoDB")
+    _client = None
+    _db = None
+    _using_mock = False
+
+
+# ─── Dependency ───────────────────────────────────────────────────────────────
+
+def get_db() -> AsyncIOMotorDatabase:
     """
-    Seed database with default admin if using mock
+    FastAPI dependency — returns the active database handle.
+    Raises HTTP 503 if the database is not connected, preventing NoneType crashes.
     """
-    from utils.password import hash_password
-    import secrets
+    if _db is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database connection is not available. Please try again later.",
+        )
+    return _db
+
+
+def is_using_mock_db() -> bool:
+    """Returns True if the application is running with the in-memory mock DB."""
+    return _using_mock
+
+
+# ─── Indexes ──────────────────────────────────────────────────────────────────
+
+async def _create_indexes() -> None:
+    """Create performance indexes. Safe to call on every startup (idempotent)."""
+    assert _db is not None
+
+    await _db.users.create_index("email", unique=True)
+    await _db.devices.create_index("user_id")
+    await _db.energy_data.create_index([("device_id", 1), ("timestamp", -1)])
+    await _db.energy_data.create_index("device_id")
+    await _db.alerts.create_index("user_id")
+    await _db.alerts.create_index("timestamp")
+    await _db.recommendations.create_index("user_id")
+    await _db.recommendations.create_index("timestamp")
+    logger.debug("Database indexes verified/created")
+
+
+# ─── Mock seed (dev only) ─────────────────────────────────────────────────────
+
+async def _seed_mock_db() -> None:
+    """
+    Seed the in-memory mock database with a default admin account.
+    Only runs when using the mock DB in development mode.
+    """
     import os
-    
+    from datetime import datetime
+    from utils.password import hash_password
+
     admin_email = "admin@aipeco.com"
-    existing = await db.users.find_one({"email": admin_email})
+    existing = await _db.users.find_one({"email": admin_email})
     if not existing:
-        # Use env var if provided, otherwise generate random password
-        admin_password = os.getenv("DEMO_ADMIN_PASSWORD", secrets.token_urlsafe(16))
-        await db.users.insert_one({
+        admin_password = os.getenv("DEMO_ADMIN_PASSWORD", "Admin123!")
+        await _db.users.insert_one({
             "name": "Demo Admin",
             "email": admin_email,
             "password_hash": hash_password(admin_password),
             "role": "admin",
             "energy_limit": 100.0,
-            "is_active": True
+            "is_active": True,
+            "created_at": datetime.utcnow(),
         })
-        logger.info(f"👤 Created default admin: {admin_email}")
-        if os.getenv("DEMO_ADMIN_PASSWORD"):
-            logger.info(f"   Password from environment (DEMO_ADMIN_PASSWORD)")
-        else:
-            logger.warning(f"   🔑 Generated random password: {admin_password}")
-            logger.warning(f"   💾 Set DEMO_ADMIN_PASSWORD in .env to use a specific password")
-
-
-async def close_db():
-    """
-    Close MongoDB connection
-    """
-    global client
-    if client:
-        client.close()
-        print("✓ Disconnected from MongoDB")
-
-
-async def create_indexes():
-    """
-    Create database indexes for performance
-    """
-    # Users collection
-    await db.users.create_index("email", unique=True)
-    
-    # Devices collection
-    await db.devices.create_index("user_id")
-    
-    # Energy data - compound index for time-series queries
-    await db.energy_data.create_index([("device_id", 1), ("timestamp", -1)])
-    await db.energy_data.create_index("device_id")
-    
-    # Alerts
-    await db.alerts.create_index("user_id")
-    await db.alerts.create_index("timestamp")
-    
-    # Recommendations
-    await db.recommendations.create_index("user_id")
-    await db.recommendations.create_index("timestamp")
-
-
-def get_db() -> AsyncIOMotorDatabase:
-    """
-    Get database instance
-    """
-    return db
+        logger.info(
+            "Mock DB seeded — admin account: %s / %s",
+            admin_email,
+            admin_password,
+        )

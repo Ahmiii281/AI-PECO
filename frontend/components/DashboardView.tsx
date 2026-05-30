@@ -21,6 +21,7 @@ const DashboardView: React.FC = () => {
 
   const [backendStats, setBackendStats] = useState<DashboardStatsSummary | null>(null);
   const [statsError, setStatsError] = useState<string | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [rlSuggestion, setRlSuggestion] = useState<RLSuggestion | null>(null);
   const [aiRecommendations, setAiRecommendations] = useState<Recommendation[]>([]);
 
@@ -29,18 +30,22 @@ const DashboardView: React.FC = () => {
 
     const fetchStats = async () => {
       if (!authService.isAuthenticated()) return;
+      setStatsLoading(true);
       try {
         const stats = await dashboardAPI.getStats();
         if (isMounted) {
-          setBackendStats(stats);
+          setBackendStats(stats as DashboardStatsSummary);
           setStatsError(null);
         }
-      } catch (error) {
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : 'Backend unavailable.';
         console.error('Failed to load dashboard stats from backend', error);
         if (isMounted) {
           setBackendStats(null);
-          setStatsError('Using demo data (backend unavailable).');
+          setStatsError(msg);
         }
+      } finally {
+        if (isMounted) setStatsLoading(false);
       }
     };
 
@@ -164,12 +169,20 @@ const DashboardView: React.FC = () => {
       </div>
       <div className="p-4 md:p-6 lg:p-8 space-y-8">
         {/* Top Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {summaryCards.map((card) => (
-            <StatsCard key={card.title} {...card} />
-          ))}
-          <StatsCard title="Forecast Accuracy" value={`${forecastAccuracy.toFixed(1)}%`} icon={<TargetIcon />} />
-        </div>
+        {statsLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" aria-label="Loading stats">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-xl bg-gray-200 dark:bg-gray-700 h-28 animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {summaryCards.map((card) => (
+              <StatsCard key={card.title} {...card} />
+            ))}
+            <StatsCard title="Forecast Accuracy" value={`${forecastAccuracy.toFixed(1)}%`} icon={<TargetIcon />} />
+          </div>
+        )}
 
         {backendStats && (
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
@@ -183,9 +196,15 @@ const DashboardView: React.FC = () => {
           </div>
         )}
         {statsError && !backendStats && (
-          <p className="text-xs sm:text-sm text-yellow-600 dark:text-yellow-400">
-            {statsError}
-          </p>
+          <div className="flex items-center gap-3 text-xs sm:text-sm text-yellow-600 dark:text-yellow-400">
+            <span>⚠️ {statsError}</span>
+            <button
+              onClick={() => { setStatsLoading(true); setStatsError(null); }}
+              className="underline hover:no-underline font-medium"
+            >
+              Retry
+            </button>
+          </div>
         )}
 
         {/* RL Agent Status */}

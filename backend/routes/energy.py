@@ -1,5 +1,11 @@
 """
-Energy data and analytics routes
+Energy data and analytics routes.
+
+ESP32 Authentication:
+- DEVICE_API_KEY_REQUIRED=True (default, production): every POST to /api/energy/data
+  must include the X-API-Key header matching settings.DEVICE_API_KEY.
+- DEVICE_API_KEY_REQUIRED=False (development only): key check is skipped.
+  A WARNING is logged at startup if this is used outside DEBUG mode.
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from database import get_db
@@ -11,35 +17,61 @@ from schemas import (
     EnergyDataCreate,
     EnergyDataResponse,
     AlertResponse,
-    RecommendationResponse,
     AlertCreate,
 )
 from routes.auth import get_current_user
 from config import settings
+from utils.logger import setup_logger
 
 router = APIRouter(prefix="/api/energy", tags=["energy"])
+logger = setup_logger(__name__)
+
+
+def _check_device_api_key(x_api_key: str | None) -> None:
+    """
+    Validate the X-API-Key header from ESP32.
+    Raises HTTP 401 if validation fails.
+    Skipped only when DEVICE_API_KEY_REQUIRED=False (dev mode).
+    """
+    if not settings.DEVICE_API_KEY_REQUIRED:
+        # Key enforcement is disabled — only allowed in DEBUG mode
+        if not settings.DEBUG:
+            logger.warning(
+                "⚠️  ESP32 API key enforcement is DISABLED in a non-debug environment. "
+                "Any client can POST energy data. Set DEVICE_API_KEY_REQUIRED=True in production."
+            )
+        return
+
+    expected = settings.DEVICE_API_KEY
+    if not expected:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=(
+                "DEVICE_API_KEY is not configured on the server. "
+                "Set it in environment variables."
+            ),
+        )
+
+    if not x_api_key or x_api_key != expected:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing X-API-Key. ESP32 must send the correct device API key.",
+        )
 
 
 @router.post("/data", response_model=EnergyDataResponse)
 async def save_energy_data(
     data: EnergyDataCreate,
-    x_api_key: str = Header(None)
+    x_api_key: str | None = Header(None, alias="X-API-Key"),
 ):
     """
     Receive energy data from ESP32.
-    - In development (`DEBUG=True`), requests are accepted without a device API key.
-    - In non-development environments, a valid `X-API-Key` matching `DEVICE_API_KEY`
-      is required; otherwise a 401 is returned.
-    """
-    is_dev = settings.DEBUG
-    expected_key = settings.DEVICE_API_KEY
 
-    if not is_dev:
-        if not x_api_key or not expected_key or x_api_key != expected_key:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or missing device API key",
-            )
+    Authentication:
+    - Production: requires X-API-Key header matching DEVICE_API_KEY env var.
+    - Development (DEVICE_API_KEY_REQUIRED=False): no key needed.
+    """
+    _check_device_api_key(x_api_key)
 
     # Signal that real hardware is sending data → demo seeder will auto-pause
     mark_hardware_active()
@@ -55,29 +87,26 @@ async def save_energy_data(
         # Save energy data
         energy_data = await energy_service.save_energy_data(
             data.device_id,
-            data.dict()
+            data.dict(),
         )
 
-        # Check for anomalies
+        # Anomaly detection
         recent_data = await energy_service.get_device_energy_data(data.device_id, hours=1)
         model = EnergyModel(
-            energy_price_per_unit=settings.ENERGY_PRICE_PER_UNIT,
-            anomaly_threshold_sigma=settings.ANOMALY_THRESHOLD_SIGMA
+            energy_price_per_unit=settings.ELECTRICITY_TARIFF_PKR,
+            anomaly_threshold_sigma=settings.ANOMALY_THRESHOLD_SIGMA,
         )
-
-        anomalies, mean_power, std_dev = model.detect_anomalies(recent_data)
+        anomalies, _mean_power, _std_dev = model.detect_anomalies(recent_data)
 
         if anomalies and settings.ENABLE_AUTO_ALERTS:
-            # Get device owner
             device = await device_service.get_device(data.device_id)
-            # Create alert
             await energy_service.create_alert(
                 str(device["user_id"]),
                 f"Anomaly in {device['name']}: Power {anomalies[-1]['power']:.0f}W",
-                "warning"
+                "warning",
             )
 
-        # Update RL agent with new reading (online learning)
+        # Non-critical: update RL agent with new reading
         try:
             from services.ai_service import AIService
             ai_service = AIService(db)
@@ -87,7 +116,7 @@ async def save_energy_data(
                 energy_data.get("temperature", 25),
             )
         except Exception:
-            pass  # RL update is non-critical
+            pass
 
         return {
             "id": str(energy_data["_id"]),
@@ -101,6 +130,8 @@ async def save_energy_data(
             "timestamp": energy_data["timestamp"],
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -109,21 +140,16 @@ async def save_energy_data(
 async def get_device_energy_data(
     device_id: str,
     hours: int = 24,
-    user_id: str = Depends(get_current_user)
+    user_id: str = Depends(get_current_user),
 ):
-    """
-    Get energy data for a device (last N hours)
-    """
+    """Get energy data for a device (last N hours). Requires device ownership."""
     db = get_db()
     energy_service = EnergyService(db)
     device_service = DeviceService(db)
 
     try:
-        # Verify ownership
-        await device_service.get_device(device_id, user_id)
-
+        await device_service.get_device(device_id, user_id)  # ownership check
         data = await energy_service.get_device_energy_data(device_id, hours)
-
         return [
             {
                 "id": str(d["_id"]),
@@ -138,7 +164,6 @@ async def get_device_energy_data(
             }
             for d in data
         ]
-
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -148,17 +173,13 @@ async def create_alert(
     payload: AlertCreate,
     user_id: str = Depends(get_current_user),
 ):
-    """
-    Manually create an alert
-    """
+    """Manually create an alert for the current user."""
     db = get_db()
     energy_service = EnergyService(db)
 
     try:
         alert = await energy_service.create_alert(
-            user_id,
-            payload.message,
-            payload.alert_type,
+            user_id, payload.message, payload.alert_type
         )
         return {
             "id": str(alert["_id"]),
@@ -174,16 +195,13 @@ async def create_alert(
 @router.get("/alerts", response_model=list)
 async def get_alerts(
     resolved: bool = False,
-    user_id: str = Depends(get_current_user)
+    user_id: str = Depends(get_current_user),
 ):
-    """
-    Get user alerts
-    """
+    """Get all alerts for the current user."""
     db = get_db()
     energy_service = EnergyService(db)
 
     alerts = await energy_service.get_user_alerts(user_id, resolved)
-
     return [
         {
             "id": str(a["_id"]),
@@ -199,11 +217,9 @@ async def get_alerts(
 @router.put("/alerts/{alert_id}")
 async def resolve_alert(
     alert_id: str,
-    user_id: str = Depends(get_current_user)
+    user_id: str = Depends(get_current_user),
 ):
-    """
-    Mark alert as resolved
-    """
+    """Mark an alert as resolved."""
     db = get_db()
     energy_service = EnergyService(db)
 

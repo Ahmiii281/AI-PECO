@@ -1,72 +1,168 @@
 /**
- * API Service - Handles all communication with backend
+ * API Service — handles all HTTP communication with the AI-PECO backend.
+ *
+ * Features:
+ * - Automatic retry on transient failures (network errors, 503, 429, 502)
+ * - Exponential backoff: 1s, 2s, 4s
+ * - Per-call timeout (default 15s; cold-start aware)
+ * - Graceful Render/Railway cold-start handling
+ * - User-friendly error classification
+ * - Smart analysis uses POST (not GET) for privacy
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// Get token from localStorage
-const getToken = () => localStorage.getItem("access_token");
+const DEFAULT_TIMEOUT_MS = 15_000;
+const COLD_START_TIMEOUT_MS = 30_000; // Render free tier can take ~25s to wake
+const MAX_RETRIES = 3;
+const RETRY_STATUSES = new Set([429, 502, 503, 504]);
 
-// Generic API request handler
-const apiCall = async (
+// ─── Auth token ──────────────────────────────────────────────────────────────
+const getToken = (): string | null => localStorage.getItem("access_token");
+
+// ─── Sleep helper ─────────────────────────────────────────────────────────────
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+// ─── Fetch with timeout ───────────────────────────────────────────────────────
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// ─── Error classification ─────────────────────────────────────────────────────
+function classifyError(err: unknown, status?: number): string {
+  if (err instanceof DOMException && err.name === "AbortError") {
+    return "Request timed out. The server may be starting up — please try again in a moment.";
+  }
+  if (!navigator.onLine) {
+    return "No internet connection. Please check your network.";
+  }
+  if (status === 401) return "Session expired. Please log in again.";
+  if (status === 403) return "You do not have permission to perform this action.";
+  if (status === 404) return "The requested resource was not found.";
+  if (status === 422) return "Invalid request data. Please check your input.";
+  if (status === 429) return "Too many requests. Please wait a moment and try again.";
+  if (status === 503) return "Server is starting up. Retrying automatically…";
+  if (status != null && status >= 500) {
+    return "Server error. Our team has been notified. Please try again later.";
+  }
+  if (err instanceof TypeError && err.message.includes("Failed to fetch")) {
+    return "Cannot reach the server. It may be starting up (Render cold start) — retrying…";
+  }
+  return (err as Error)?.message || "An unexpected error occurred.";
+}
+
+// ─── Core API call with retry ─────────────────────────────────────────────────
+async function apiCall(
   endpoint: string,
   method: string = "GET",
-  data?: any,
-  headers?: any
-) => {
+  data?: unknown,
+  extraHeaders?: Record<string, string>,
+  options: { timeoutMs?: number; retries?: number } = {}
+): Promise<unknown> {
+  const { timeoutMs = DEFAULT_TIMEOUT_MS, retries = MAX_RETRIES } = options;
   const token = getToken();
+  const url = `${API_BASE_URL}${endpoint}`;
 
-  const options: RequestInit = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...headers,
-      ...(token && { Authorization: `Bearer ${token}` }),
-    },
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...extraHeaders,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  if (data) {
-    options.body = JSON.stringify(data);
-  }
+  const fetchOptions: RequestInit = {
+    method,
+    headers,
+    ...(data !== undefined ? { body: JSON.stringify(data) } : {}),
+  };
 
-  // Add timeout logic
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), 10000); // 10s timeout
-  options.signal = controller.signal;
+  let lastError: unknown;
 
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-    clearTimeout(id);
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetchWithTimeout(url, fetchOptions, timeoutMs);
 
-    if (!response.ok) {
+      // Handle 401 globally (token expiry)
       if (response.status === 401) {
         localStorage.removeItem("access_token");
         localStorage.removeItem("user");
         window.location.href = "/login";
+        throw new Error("Session expired.");
       }
-      
-      let errorMessage = `HTTP Error: ${response.status}`;
-      try {
-        const errorData = await response.json();
-        if (errorData.detail) {
-          errorMessage = errorData.detail;
+
+      // Retry on transient server errors
+      if (RETRY_STATUSES.has(response.status) && attempt < retries) {
+        const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+        console.warn(
+          `[API] ${method} ${endpoint} → ${response.status}. Retrying in ${delay}ms (attempt ${attempt + 1}/${retries})…`
+        );
+        await sleep(delay);
+        lastError = new Error(classifyError(null, response.status));
+        continue;
+      }
+
+      if (!response.ok) {
+        let errorMessage = classifyError(null, response.status);
+        try {
+          const errorData = await response.json();
+          if (errorData?.detail) {
+            errorMessage =
+              typeof errorData.detail === "string"
+                ? errorData.detail
+                : JSON.stringify(errorData.detail);
+          }
+        } catch {
+          // Response body is not JSON — use classified message
         }
-      } catch {
-        // If response is not JSON, use default message
+        throw new Error(errorMessage);
       }
-      
-      throw new Error(errorMessage);
+
+      // Success — parse JSON
+      const contentType = response.headers.get("Content-Type") || "";
+      if (contentType.includes("application/json")) {
+        return await response.json();
+      }
+      return {};
+    } catch (err) {
+      // Network/timeout error — retry if attempts remain
+      const isRetryable =
+        err instanceof TypeError ||
+        (err instanceof DOMException && err.name === "AbortError");
+
+      if (isRetryable && attempt < retries) {
+        const delay = Math.pow(2, attempt) * 1000;
+        console.warn(
+          `[API] ${method} ${endpoint} network error. Retrying in ${delay}ms (attempt ${attempt + 1}/${retries})…`,
+          err
+        );
+        await sleep(delay);
+        lastError = err;
+        continue;
+      }
+
+      lastError = err;
+      break;
     }
-
-    return await response.json();
-  } catch (error: any) {
-    console.error(`API Error [${method} ${endpoint}]:`, error);
-    // Re-throw with proper error message
-    throw new Error(error.message || `Request failed: ${method} ${endpoint}`);
   }
-};
 
-// ==================== Authentication ====================
+  // All retries exhausted
+  const msg = classifyError(lastError);
+  console.error(`[API] ${method} ${endpoint} failed after ${retries + 1} attempts:`, lastError);
+  throw new Error(msg);
+}
+
+// ─── Authentication ───────────────────────────────────────────────────────────
 export const authAPI = {
   register: (name: string, email: string, password: string) =>
     apiCall("/api/auth/register", "POST", { name, email, password }),
@@ -83,24 +179,22 @@ export const authAPI = {
   getProfile: () => apiCall("/api/auth/me", "GET"),
 };
 
-// ==================== Devices ====================
+// ─── Devices ──────────────────────────────────────────────────────────────────
 export const deviceAPI = {
   getAll: () => apiCall("/api/devices", "GET"),
 
   create: (name: string, location: string, relay_pin?: number) =>
     apiCall("/api/devices", "POST", { name, location, relay_pin }),
 
-  getOne: (deviceId: string) =>
-    apiCall(`/api/devices/${deviceId}`, "GET"),
+  getOne: (deviceId: string) => apiCall(`/api/devices/${deviceId}`, "GET"),
 
-  update: (deviceId: string, data: any) =>
+  update: (deviceId: string, data: unknown) =>
     apiCall(`/api/devices/${deviceId}`, "PUT", data),
 
-  delete: (deviceId: string) =>
-    apiCall(`/api/devices/${deviceId}`, "DELETE"),
+  delete: (deviceId: string) => apiCall(`/api/devices/${deviceId}`, "DELETE"),
 };
 
-// ==================== Energy Data ====================
+// ─── Energy Data ──────────────────────────────────────────────────────────────
 export const energyAPI = {
   getDeviceHistory: (deviceId: string, hours: number = 24) =>
     apiCall(`/api/energy/device/${deviceId}?hours=${hours}`, "GET"),
@@ -115,9 +209,12 @@ export const energyAPI = {
     apiCall(`/api/energy/alerts/${alertId}`, "PUT"),
 };
 
-// ==================== Dashboard ====================
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 export const dashboardAPI = {
-  getStats: () => apiCall("/api/dashboard/stats", "GET"),
+  getStats: () =>
+    apiCall("/api/dashboard/stats", "GET", undefined, undefined, {
+      timeoutMs: COLD_START_TIMEOUT_MS, // first load can be slow on Render
+    }),
 
   controlRelay: (deviceId: string, command: "ON" | "OFF") =>
     apiCall(`/api/dashboard/relay/${deviceId}`, "POST", { device_id: deviceId, command }),
@@ -129,13 +226,13 @@ export const dashboardAPI = {
     apiCall(`/api/dashboard/device-command/${deviceId}`, "GET"),
 };
 
-// ==================== Billing ====================
+// ─── Billing ──────────────────────────────────────────────────────────────────
 export const billingAPI = {
   getCategories: () => apiCall("/api/billing/categories"),
-  estimate: (data: any) => apiCall("/api/billing/estimate", "POST", data),
+  estimate: (data: unknown) => apiCall("/api/billing/estimate", "POST", data),
 };
 
-// ==================== Predictions / AI ====================
+// ─── Predictions / AI ─────────────────────────────────────────────────────────
 export const predictionsAPI = {
   getForecast: (deviceId: string) =>
     apiCall(`/api/predictions/forecast/${deviceId}`, "GET"),
@@ -143,22 +240,25 @@ export const predictionsAPI = {
   getDisaggregation: (deviceId: string) =>
     apiCall(`/api/predictions/disaggregate/${deviceId}`, "GET"),
 
-  getRLSuggestion: () =>
-    apiCall("/api/predictions/rl-suggestion", "GET"),
+  getRLSuggestion: () => apiCall("/api/predictions/rl-suggestion", "GET"),
 
+  /**
+   * Smart analysis — uses POST to keep query out of URL/access logs.
+   * Backend: POST /api/predictions/smart-analysis  { query: string }
+   */
   getSmartAnalysis: (query: string) =>
-    apiCall(`/api/predictions/smart-analysis?q=${encodeURIComponent(query)}`, "GET"),
+    apiCall("/api/predictions/smart-analysis", "POST", { query }),
 };
 
-// ==================== Health Check ====================
+// ─── Health Check ─────────────────────────────────────────────────────────────
 export const healthAPI = {
   check: () =>
-    fetch(`${API_BASE_URL}/health`)
+    fetchWithTimeout(`${API_BASE_URL}/health`, {}, 8_000)
       .then((res) => res.json())
       .catch(() => ({ status: "unavailable" })),
 };
 
-
+// ─── Default export (named group) ─────────────────────────────────────────────
 const apiClient = {
   auth: authAPI,
   devices: deviceAPI,

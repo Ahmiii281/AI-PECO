@@ -18,6 +18,7 @@ const DevicesView: React.FC = () => {
   const [devices, setDevices] = useState<Device[]>(initialDevices);
   const [isBackendMode, setIsBackendMode] = useState(false);
   const [isLoadingBackend, setIsLoadingBackend] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -26,8 +27,9 @@ const DevicesView: React.FC = () => {
     const loadBackendDevices = async () => {
       if (!authService.isAuthenticated()) return;
       setIsLoadingBackend(true);
+      setLoadError(null);
       try {
-        const backendDevices: BackendDevice[] = await deviceAPI.getAll();
+        const backendDevices = await deviceAPI.getAll() as BackendDevice[];
         if (!isMounted) return;
 
         const mappedDevices: Device[] = backendDevices.map((d) => {
@@ -35,7 +37,6 @@ const DevicesView: React.FC = () => {
           let mappedStatus = DeviceStatus.Offline;
           if (status === 'online') mappedStatus = DeviceStatus.Online;
           else if (status === 'idle') mappedStatus = DeviceStatus.Idle;
-
           return {
             id: d.id,
             name: d.name,
@@ -49,13 +50,15 @@ const DevicesView: React.FC = () => {
 
         setDevices(mappedDevices.length ? mappedDevices : initialDevices);
         setIsBackendMode(mappedDevices.length > 0);
-      } catch (error) {
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : 'Failed to load devices.';
         console.error('Failed to load devices from backend', error);
-        setIsBackendMode(false);
-      } finally {
         if (isMounted) {
-          setIsLoadingBackend(false);
+          setLoadError(msg);
+          setIsBackendMode(false);
         }
+      } finally {
+        if (isMounted) setIsLoadingBackend(false);
       }
     };
 
@@ -243,17 +246,42 @@ const DevicesView: React.FC = () => {
           </div>
         </div>
         <AddDeviceCard onAdd={handleAddDevice} />
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {devices.map(device => (
-            <DeviceCard
-              key={device.id}
-              device={device}
-              onToggle={handleToggle}
-              onPowerChange={handlePowerChange}
-              onDelete={handleDeleteDevice}
-            />
-          ))}
-        </div>
+        {/* Device loading skeleton */}
+        {isLoadingBackend ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" aria-label="Loading devices">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-xl bg-gray-200 dark:bg-gray-700 h-48 animate-pulse" />
+            ))}
+          </div>
+        ) : loadError ? (
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <p className="text-yellow-600 dark:text-yellow-400 font-medium">⚠️ {loadError}</p>
+            <button
+              onClick={() => setIsLoadingBackend(true)}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Retry
+            </button>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Showing demo devices below.</p>
+          </div>
+        ) : devices.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-16 text-center">
+            <p className="text-gray-500 dark:text-gray-400 text-lg">No devices yet.</p>
+            <p className="text-sm text-gray-400">Use the panel above to add your first device.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {devices.map(device => (
+              <DeviceCard
+                key={device.id}
+                device={device}
+                onToggle={handleToggle}
+                onPowerChange={handlePowerChange}
+                onDelete={handleDeleteDevice}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

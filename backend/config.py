@@ -1,85 +1,145 @@
 """
-Configuration module for AI-PECO application
+Configuration module for AI-PECO application.
+
+All settings are loaded from environment variables (or .env file).
+Call `settings` to access the singleton — never read os.getenv() directly
+in application code; always use settings.<FIELD>.
 """
-from pydantic_settings import BaseSettings
-from pydantic import field_validator
-from typing import Optional, List
 import os
+import secrets
+import logging
+from pydantic_settings import BaseSettings
+from pydantic import model_validator
+from typing import Optional, List
+
+logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
-    # Application
+    # ── Application ──────────────────────────────────────────────────────────
     APP_NAME: str = "AI-PECO"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
-    
-    # Database
+
+    # ── Database ─────────────────────────────────────────────────────────────
     MONGODB_URL: str = "mongodb://localhost:27017"
     DATABASE_NAME: str = "ba341914_db_users"
-    
-    # JWT - CRITICAL: Must be set from environment in production
+
+    # ── JWT ───────────────────────────────────────────────────────────────────
+    # CRITICAL: Must be a persistent, random 32+ character string in production.
+    # Generate: python -c "import secrets; print(secrets.token_urlsafe(48))"
     SECRET_KEY: str = ""
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    
-    # CORS — stored as comma-separated string in .env
-    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173,https://ai-peco.vercel.app"
-    
-    # ESP32 / device API
-    ESP32_POLLING_INTERVAL: int = 5  # seconds
+
+    # ── CORS — comma-separated origins ────────────────────────────────────────
+    CORS_ORIGINS: str = (
+        "http://localhost:3000,http://localhost:5173,https://ai-peco.vercel.app"
+    )
+
+    # ── ESP32 / Device API ───────────────────────────────────────────────────
+    ESP32_POLLING_INTERVAL: int = 5          # seconds between readings
     DATA_RETENTION_DAYS: int = 30
     DEVICE_API_KEY: Optional[str] = None
-    
-    # Energy Settings
-    ENERGY_PRICE_PER_UNIT: float = 50  # PKR per unit
+    # Set to False only during local hardware development — always True in prod
+    DEVICE_API_KEY_REQUIRED: bool = True
+
+    # ── Energy & Billing ──────────────────────────────────────────────────────
+    ELECTRICITY_TARIFF_PKR: float = 50.0    # PKR per kWh (FESCO default)
     ANOMALY_THRESHOLD_SIGMA: float = 2.0
-    
-    # Demo mode (when ESP32 hardware is not connected)
+
+    # ── Demo Mode ─────────────────────────────────────────────────────────────
+    # When True, simulated ESP32 data is generated automatically.
+    # Set to False when real hardware is connected.
     DEMO_MODE: bool = True
 
-    # Server port (overridden by Render/Railway via PORT env var)
+    # ── Server ────────────────────────────────────────────────────────────────
     PORT: int = 8080
 
-    # Features
+    # ── Email (SMTP) ──────────────────────────────────────────────────────────
+    # Leave SMTP_HOST empty to disable email and use log-only fallback.
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASS: str = ""
+    SMTP_FROM: str = "no-reply@ai-peco.com"
+    SMTP_USE_TLS: bool = True
+
+    # ── Frontend ──────────────────────────────────────────────────────────────
+    # Used to build password-reset links in emails.
+    FRONTEND_URL: str = "http://localhost:5173"
+
+    # ── Features ─────────────────────────────────────────────────────────────
     ENABLE_AI_PREDICTIONS: bool = True
     ENABLE_AUTO_ALERTS: bool = True
 
+    # ── Derived helpers ───────────────────────────────────────────────────────
     @property
     def cors_origins_list(self) -> List[str]:
         """Return CORS origins as a list."""
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
-    
-    @field_validator("SECRET_KEY", mode="after")
-    @classmethod
-    def validate_secret_key(cls, v):
-        """Ensure SECRET_KEY is configured properly."""
-        import os
-        
-        # In production (when PORT or other env vars are set), SECRET_KEY is mandatory
-        is_production = not os.getenv("DEBUG", "false").lower() == "true"
-        
-        if not v:
-            if is_production:
+
+    @property
+    def smtp_configured(self) -> bool:
+        """True if all required SMTP fields are set."""
+        return bool(self.SMTP_HOST and self.SMTP_USER and self.SMTP_PASS)
+
+    # ── Validators ───────────────────────────────────────────────────────────
+    @model_validator(mode="after")
+    def validate_secrets(self) -> "Settings":
+        """
+        Validate SECRET_KEY after all fields (including DEBUG) are loaded.
+
+        Rules:
+        - Production (DEBUG=False): SECRET_KEY is mandatory and must not be
+          the placeholder. Missing → fail fast with a clear error.
+        - Development (DEBUG=True): Generate a temporary key and warn that
+          all existing JWTs will be invalidated on restart.
+        """
+        key = self.SECRET_KEY
+
+        if not key:
+            if not self.DEBUG:
                 raise ValueError(
-                    "SECRET_KEY must be set in environment variables for production. "
-                    "Generate one: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+                    "SECRET_KEY must be set in environment variables for production.\n"
+                    "Generate one with:\n"
+                    "  python -c \"import secrets; print(secrets.token_urlsafe(48))\"\n"
+                    "Then add it to your .env or hosting environment."
                 )
-            # For development, generate a temporary key
-            import secrets
-            return secrets.token_urlsafe(32)
-        
-        if v == "change_me_in_production":
-            raise ValueError(
-                "SECRET_KEY is using unsafe default value 'change_me_in_production'. "
-                "Please set a strong random value in environment variables."
+            # Development only: generate ephemeral key
+            self.SECRET_KEY = secrets.token_urlsafe(48)
+            logger.warning(
+                "SECRET_KEY not set — generated a temporary key for this session. "
+                "All JWT tokens will be invalidated on restart. "
+                "Set SECRET_KEY in .env to persist sessions."
             )
-        
-        return v
-    
+        elif key == "change_me_in_production":
+            raise ValueError(
+                "SECRET_KEY is using the unsafe placeholder 'change_me_in_production'. "
+                "Please set a strong random value in your environment variables."
+            )
+
+        # Warn about weak keys in production
+        if not self.DEBUG and len(key) < 32:
+            logger.warning(
+                "SECRET_KEY is shorter than 32 characters. "
+                "Use at least 48 characters for production security."
+            )
+
+        # Warn if ESP32 key auth is disabled outside DEBUG
+        if not self.DEBUG and not self.DEVICE_API_KEY_REQUIRED:
+            logger.warning(
+                "DEVICE_API_KEY_REQUIRED=False in a non-debug environment. "
+                "This means ANY client can POST energy data without authentication. "
+                "Set DEVICE_API_KEY_REQUIRED=True and configure DEVICE_API_KEY."
+            )
+
+        return self
+
     class Config:
         env_file = ".env"
         extra = "ignore"
 
 
-# Initialize and validate settings once
+# Singleton — import `settings` everywhere; never re-instantiate.
 settings = Settings()

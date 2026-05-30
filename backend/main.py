@@ -39,6 +39,13 @@ async def lifespan(app: FastAPI):
     await connect_db()
     logger.info("AI-PECO Backend Started")
 
+    # Log ML model availability
+    try:
+        from ml.inference.model_check import log_model_status
+        log_model_status()
+    except Exception as e:
+        logger.warning("Could not check ML model status: %s", e)
+
     # Start demo mode if enabled
     if DEMO_MODE:
         logger.info("DEMO_MODE is ON -- starting simulated data generation")
@@ -81,8 +88,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-API-Key"],
     max_age=3600,
 )
 
@@ -114,13 +121,16 @@ async def global_exception_handler(request, exc: Exception):
 @app.get("/health")
 async def health_check():
     from services.hardware_status import get_hardware_info
+    from ml.inference.model_check import get_model_status_dict
     hw = get_hardware_info()
     return {
         "status": "healthy",
         "app": settings.APP_NAME,
+        "version": settings.APP_VERSION,
         "data_source": hw["data_source"],
         "hardware_connected": hw["hardware_connected"],
         "hardware_last_seen": hw["last_seen"],
+        "models": get_model_status_dict(),
     }
 
 @app.get("/")

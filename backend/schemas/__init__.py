@@ -6,11 +6,12 @@ from typing import Optional
 from datetime import datetime
 
 
-# Auth Schemas
+# ─── Auth ─────────────────────────────────────────────────────────────────────
+
 class UserRegister(BaseModel):
-    name: str
+    name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=8, max_length=100)
 
 
 class UserLogin(BaseModel):
@@ -37,34 +38,40 @@ class TokenResponse(BaseModel):
 
 
 class PasswordResetRequest(BaseModel):
-    email: str
+    email: EmailStr
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Request body for the forgot-password endpoint."""
+    email: EmailStr
 
 
 class ResetPasswordWithToken(BaseModel):
-    token: str
+    token: str = Field(..., min_length=10)
     new_password: str = Field(..., min_length=8, max_length=100)
-    
-    @field_validator('new_password')
+
+    @field_validator("new_password")
     @classmethod
-    def validate_password(cls, v):
+    def validate_password(cls, v: str) -> str:
         if not any(c.isupper() for c in v):
-            raise ValueError('Password must contain uppercase letter')
+            raise ValueError("Password must contain at least one uppercase letter.")
         if not any(c.isdigit() for c in v):
-            raise ValueError('Password must contain digit')
+            raise ValueError("Password must contain at least one digit.")
         return v
 
 
-# Device Schemas
+# ─── Devices ──────────────────────────────────────────────────────────────────
+
 class DeviceCreate(BaseModel):
-    name: str
-    location: str
-    relay_pin: int = 5
+    name: str = Field(..., min_length=2, max_length=100)
+    location: str = Field(..., min_length=2, max_length=100)
+    relay_pin: int = Field(default=5, ge=0, le=39)  # Valid ESP32 GPIO range
 
 
 class DeviceUpdate(BaseModel):
-    name: Optional[str] = None
-    location: Optional[str] = None
-    relay_pin: Optional[int] = None
+    name: Optional[str] = Field(None, min_length=2, max_length=100)
+    location: Optional[str] = Field(None, min_length=2, max_length=100)
+    relay_pin: Optional[int] = Field(None, ge=0, le=39)
 
 
 class DeviceResponse(BaseModel):
@@ -80,14 +87,15 @@ class DeviceResponse(BaseModel):
         from_attributes = True
 
 
-# Energy Data Schemas
+# ─── Energy Data ──────────────────────────────────────────────────────────────
+
 class EnergyDataCreate(BaseModel):
     device_id: str
-    current: float
-    voltage: float
-    power: float
-    temperature: float
-    humidity: float
+    current: float = Field(..., ge=0)
+    voltage: float = Field(..., ge=0)
+    power: float = Field(..., ge=0)
+    temperature: float = Field(..., ge=-40, le=85)   # DHT22 range
+    humidity: float = Field(..., ge=0, le=100)
 
 
 class EnergyDataResponse(BaseModel):
@@ -105,7 +113,21 @@ class EnergyDataResponse(BaseModel):
         from_attributes = True
 
 
-# Alert Schemas
+# ─── Alerts ───────────────────────────────────────────────────────────────────
+
+class AlertCreate(BaseModel):
+    message: str = Field(..., min_length=5, max_length=500)
+    alert_type: str = "warning"
+
+    @field_validator("alert_type")
+    @classmethod
+    def validate_type(cls, v: str) -> str:
+        allowed = {"info", "warning", "error", "critical"}
+        if v not in allowed:
+            raise ValueError(f"alert_type must be one of {allowed}")
+        return v
+
+
 class AlertResponse(BaseModel):
     id: str
     message: str
@@ -117,7 +139,8 @@ class AlertResponse(BaseModel):
         from_attributes = True
 
 
-# Recommendation Schemas
+# ─── Recommendations ──────────────────────────────────────────────────────────
+
 class RecommendationResponse(BaseModel):
     id: str
     message: str
@@ -129,12 +152,8 @@ class RecommendationResponse(BaseModel):
         from_attributes = True
 
 
-class AlertCreate(BaseModel):
-    message: str
-    alert_type: str = "warning"
+# ─── Dashboard ────────────────────────────────────────────────────────────────
 
-
-# Dashboard Schemas
 class DashboardStats(BaseModel):
     total_power: float
     avg_temperature: float
@@ -146,4 +165,18 @@ class DashboardStats(BaseModel):
 
 class RelayCommand(BaseModel):
     device_id: str
-    command: str  # "ON" or "OFF"
+    command: str
+
+    @field_validator("command")
+    @classmethod
+    def validate_command(cls, v: str) -> str:
+        if v not in ("ON", "OFF"):
+            raise ValueError("command must be 'ON' or 'OFF'")
+        return v
+
+
+# ─── Smart Analysis ───────────────────────────────────────────────────────────
+
+class SmartAnalysisRequest(BaseModel):
+    """POST body for the smart analysis endpoint."""
+    query: str = Field(..., min_length=2, max_length=500)

@@ -69,10 +69,10 @@ const SmartAnalysis: React.FC<SmartAnalysisProps> = ({ consumptionHistory }) => 
     setResponse('');
     setDataSource('');
 
-    // Try backend first
+    // Try backend first (uses POST for privacy)
     if (authService.isAuthenticated()) {
       try {
-        const result = await predictionsAPI.getSmartAnalysis(query);
+        const result = await predictionsAPI.getSmartAnalysis(query) as { response?: string };
         if (result && result.response) {
           setResponse(result.response);
           setDataSource('backend');
@@ -84,8 +84,8 @@ const SmartAnalysis: React.FC<SmartAnalysisProps> = ({ consumptionHistory }) => 
       }
     }
 
-    // Fallback to local analysis
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    // Local fallback
+    await new Promise((resolve) => setTimeout(resolve, 600));
     const result = buildLocalResponse(query, consumptionHistory);
     setResponse(result);
     setDataSource('local');
@@ -117,10 +117,11 @@ const SmartAnalysis: React.FC<SmartAnalysisProps> = ({ consumptionHistory }) => 
         <div className="text-emerald-500 animate-pulse">
           <SparklesIcon />
         </div>
-        <h3 className="text-xl font-semibold ml-2 text-white font-mono uppercase tracking-tighter">AI <span className="text-emerald-500">CORE</span></h3>
+        <h3 className="text-xl font-semibold ml-2 text-white font-mono uppercase tracking-tighter">Smart <span className="text-emerald-500">Assistant</span></h3>
       </div>
-      <p className="text-zinc-500 mb-6 text-[10px] font-mono uppercase tracking-[0.2em]">Diagnostic interface and consumption analysis. Powered by Reinforcement Learning.</p>
-      
+      <p className="text-zinc-500 mb-1 text-[10px] font-mono uppercase tracking-[0.2em]">Data-driven energy analysis. Rule-based + RL optimization.</p>
+      <p className="text-zinc-700 mb-6 text-[9px] font-mono tracking-wide">Not a generative AI — responses are grounded in your actual sensor data.</p>
+
       <div className="flex flex-col md:flex-row gap-3">
         <input
           type="text"
@@ -130,19 +131,48 @@ const SmartAnalysis: React.FC<SmartAnalysisProps> = ({ consumptionHistory }) => 
           placeholder="ENTER_QUERY..."
           className="flex-grow bg-black border border-zinc-800 rounded px-4 py-2 text-emerald-500 placeholder-zinc-800 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-all font-mono text-xs"
           disabled={isLoading}
+          aria-label="Smart analysis query"
         />
         <button
           onClick={handleAnalysis}
-          disabled={isLoading}
+          disabled={isLoading || !query.trim()}
           className="bg-emerald-600 hover:bg-emerald-500 text-black font-bold py-2 px-8 rounded transition-all active:scale-95 disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center font-mono text-xs uppercase tracking-widest"
+          aria-label="Run analysis"
         >
-          {isLoading ? 'EXECUTING...' : 'RUN_PROC'}
+          {isLoading ? 'ANALYZING...' : 'RUN_PROC'}
         </button>
       </div>
 
-      {error && <p className="text-white mt-4 font-mono text-[9px] uppercase bg-red-900/20 p-2 border border-red-900/50">ERR_EXCEPTION: {error}</p>}
-      
-      {response && (
+      {/* Skeleton loader while waiting */}
+      {isLoading && (
+        <div className="mt-8 space-y-3" aria-label="Loading analysis">
+          <div className="h-4 bg-zinc-800 rounded animate-pulse w-3/4" />
+          <div className="h-4 bg-zinc-800 rounded animate-pulse w-full" />
+          <div className="h-4 bg-zinc-800 rounded animate-pulse w-5/6" />
+          <div className="h-4 bg-zinc-800 rounded animate-pulse w-2/3" />
+        </div>
+      )}
+
+      {/* Error state with retry */}
+      {error && !isLoading && (
+        <div className="mt-4 flex items-center gap-3">
+          <p className="text-white font-mono text-[9px] uppercase bg-red-900/20 p-2 border border-red-900/50 flex-1">ERR: {error}</p>
+          <button
+            onClick={() => setError('')}
+            className="text-zinc-500 hover:text-zinc-300 font-mono text-[9px] uppercase"
+          >DISMISS</button>
+        </div>
+      )}
+
+      {/* Empty state before first query */}
+      {!response && !isLoading && !error && (
+        <div className="mt-8 text-center text-zinc-700 font-mono text-[9px] uppercase tracking-widest">
+          &gt; AWAITING_QUERY...
+        </div>
+      )}
+
+      {/* Response */}
+      {response && !isLoading && (
         <div className="mt-8 p-5 bg-black rounded border border-zinc-900 shadow-inner">
            <div className="prose prose-sm max-w-none text-zinc-300 font-sans leading-relaxed">
               {renderResponse(response)}
@@ -151,7 +181,7 @@ const SmartAnalysis: React.FC<SmartAnalysisProps> = ({ consumptionHistory }) => 
              <span>CORE_REPORT_GEN_AUTO</span>
              {dataSource && (
                <span className={dataSource === 'backend' ? 'text-cyan-600' : 'text-zinc-600'}>
-                 SRC: {dataSource === 'backend' ? 'AI_BACKEND' : 'LOCAL_ANALYSIS'}
+                 SRC: {dataSource === 'backend' ? 'AI_BACKEND' : 'LOCAL_FALLBACK'}
                </span>
              )}
            </div>
