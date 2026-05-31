@@ -10,7 +10,8 @@
  * - Smart analysis uses POST (not GET) for privacy
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const rawApiUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = (rawApiUrl?.toString().trim().replace(/\/+$/, "")) || "http://localhost:8000";
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 const COLD_START_TIMEOUT_MS = 30_000; // Render free tier can take ~25s to wake

@@ -34,7 +34,8 @@ class Settings(BaseSettings):
 
     # ── CORS — comma-separated origins ────────────────────────────────────────
     CORS_ORIGINS: str = (
-        "http://localhost:3000,http://localhost:5173,https://ai-peco.vercel.app"
+        "http://localhost:3000,http://127.0.0.1:3000," \
+        "http://localhost:5173,http://127.0.0.1:5173,https://ai-peco.vercel.app"
     )
 
     # ── ESP32 / Device API ───────────────────────────────────────────────────

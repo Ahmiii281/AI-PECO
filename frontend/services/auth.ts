@@ -62,6 +62,9 @@ class AuthService {
     this.setToken(response.access_token);
     if (response.user) {
       this.setUser(response.user);
+    } else {
+      const profile = await this.getProfile();
+      this.setUser(profile);
     }
     return response;
   }
