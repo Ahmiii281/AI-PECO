@@ -103,6 +103,9 @@ class EnergyService:
         Get aggregated dashboard statistics for user
         """
         # Get user's devices
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
         from ml.inference.energy_model import EnergyModel
         devices = await self.db.devices.find(
             {"user_id": ObjectId(user_id)}

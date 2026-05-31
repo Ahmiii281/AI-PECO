@@ -7,6 +7,9 @@ ESP32 Authentication:
 - DEVICE_API_KEY_REQUIRED=False (development only): key check is skipped.
   A WARNING is logged at startup if this is used outside DEBUG mode.
 """
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from database import get_db
 from services.energy_service import EnergyService

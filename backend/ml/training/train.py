@@ -122,6 +122,9 @@ def main() -> None:
 
     # ── 1. Preprocessing ─────────────────────────────────────────────────
     logger.info("\n▶ Step 1/4 — Preprocessing …")
+    import sys
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     from ml.training.preprocessing import run_preprocessing_pipeline
 
     data = run_preprocessing_pipeline()
@@ -147,6 +150,9 @@ def main() -> None:
 
     # ── 2. Train LSTM Forecaster ─────────────────────────────────────────
     logger.info("\n▶ Step 2/4 — Training LSTM Energy Forecaster …")
+    import sys
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     from ml.training.lstm_model import train_lstm
 
     t0 = time.time()
@@ -162,6 +168,9 @@ def main() -> None:
 
     # ── 3. Train NILM Disaggregator ──────────────────────────────────────
     logger.info("\n▶ Step 3/4 — Training NILM Disaggregator …")
+    import sys
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     from ml.training.nilm_model import train_nilm
 
     t0 = time.time()

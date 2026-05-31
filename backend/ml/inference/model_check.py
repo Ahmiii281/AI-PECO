@@ -5,6 +5,9 @@ Checks whether trained ML models (LSTM, NILM) are present on disk.
 Called at startup to log what AI features are available.
 
 Usage:
+    import sys
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     from ml.inference.model_check import check_models, log_model_status
     status = check_models()
     log_model_status(status)

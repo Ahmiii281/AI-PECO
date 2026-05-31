@@ -1,6 +1,9 @@
 """
 Dashboard and relay control routes
 """
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi import APIRouter, Depends, HTTPException, status
 from database import get_db
 from services.device_service import DeviceService

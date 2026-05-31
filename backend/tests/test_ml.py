@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 import pytest
 from ml.inference.energy_model import EnergyModel
 from ml.inference.inference import LSTMForecaster, NILMDisaggregator

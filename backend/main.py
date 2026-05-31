@@ -4,8 +4,8 @@ Main FastAPI application
 """
 import os
 import sys
-# Add top-level folder to system path to import ml package
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add backend folder to system path to import ml package
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

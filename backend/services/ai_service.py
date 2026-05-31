@@ -42,6 +42,10 @@ class AIService:
             return None
         if self._lstm_forecaster is None:
             try:
+                import sys
+                import os
+                if os.path.dirname(os.path.dirname(os.path.abspath(__file__))) not in sys.path:
+                    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                 from ml.inference.inference import LSTMForecaster
                 self._lstm_forecaster = LSTMForecaster()
                 self._lstm_forecaster._ensure_loaded()
@@ -58,6 +62,10 @@ class AIService:
             return None
         if self._nilm_disaggregator is None:
             try:
+                import sys
+                import os
+                if os.path.dirname(os.path.dirname(os.path.abspath(__file__))) not in sys.path:
+                    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                 from ml.inference.inference import NILMDisaggregator
                 self._nilm_disaggregator = NILMDisaggregator()
                 self._nilm_disaggregator._ensure_loaded()
@@ -543,6 +551,14 @@ class AIService:
         This is the online learning loop — the agent improves with each reading.
         """
         try:
+            import sys
+            import os
+            if os.path.dirname(os.path.dirname(os.path.abspath(__file__))) not in sys.path:
+                sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            import sys
+            import os
+            if os.path.dirname(os.path.dirname(os.path.abspath(__file__))) not in sys.path:
+                sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             from ml.inference.rl_agent import get_rl_agent
             agent = get_rl_agent()
 
