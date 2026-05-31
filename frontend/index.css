@@ -1,6 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
   /* ── Backgrounds ── */
@@ -210,13 +210,11 @@ select:focus {
 .hover\:bg-green-600, .peer-checked\:bg-green-600 { background-color: var(--color-accent-primary) !important; }
 .focus\:ring-green-500, .focus\:ring-red-500 { box-shadow: 0 0 0 3px rgba(6,182,212,0.12) !important; }
 
-.border-gray-300, .border-gray-200, .border-[#333], .border-zinc-900 { border-color: var(--color-border-default) !important; }
+.border-gray-300, .border-gray-200, .border-\[\#333\], .border-zinc-900 { border-color: var(--color-border-default) !important; }
 .border-gray-600, .dark\:border-gray-600 { border-color: var(--color-border-accent) !important; }
 
+/* Fixed: Forward slash escaped for seamless CSS parsing */
 .shadow-green-500\/20, .hover\:shadow-green-500\/20 { box-shadow: 0 10px 30px rgba(6,182,212,0.06) !important; }
-
-.animate-pulse { /* keep animation but ensure color neutrality */ }
 
 /* Selection styles fallback */
 ::selection { background: var(--color-accent-primary); color: var(--color-text-primary); }
-
