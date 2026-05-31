@@ -1,0 +1,40 @@
+# =========================
+# Backend-specific .gitignore
+# =========================
+
+# Environment
+.env
+.env.local
+
+# Python caches
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+venv_new/
+ml_venv/
+venv_run/
+.venv/
+
+# Test caches
+.pytest_cache/
+
+# Runtime / auto-generated log files
+error.txt
+startup_log.txt
+logs/
+
+# Large dataset files (never commit these)
+ml/datasets/data/*.txt
+ml/datasets/data/*.csv
+ml/datasets/data/*.parquet
+ml/datasets/data/*.zip
+ml/datasets/data/*.tar
+ml/datasets/data/*.tar.gz
+ml/datasets/data/*.gz
+
+# NOTE: ml/ folder, .pkl, .h5, .joblib, .keras model files are NOT ignored.
+# Trained model artifacts are small (<50MB) and safe to commit.

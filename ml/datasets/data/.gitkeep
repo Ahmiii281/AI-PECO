@@ -1,0 +1,6 @@
+# This file ensures the ml/datasets/data/ directory is tracked by git
+# even when all large dataset files are in .gitignore.
+#
+# The actual dataset (household_power_consumption.txt, 127MB) is NOT committed.
+# Download it from: https://archive.ics.uci.edu/ml/datasets/Individual+household+electric+power+consumption
+# Place it at: ml/datasets/data/household_power_consumption.txt

@@ -1,5 +1,5 @@
 # =========================
-# Logs
+# Logs & Runtime files
 # =========================
 logs/
 *.log
@@ -9,7 +9,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Runtime log files (auto-generated)
+# Auto-generated runtime log files (not source)
 backend/error.txt
 backend/startup_log.txt
 
@@ -31,6 +31,7 @@ dist-ssr/
 backend/.env
 frontend/.env.production
 esp32/credentials.h
+# .env.example is intentionally NOT ignored — it serves as a template
 
 # =========================
 # Python
@@ -40,39 +41,44 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.pyo
+.pytest_cache/
+**/.pytest_cache/
 
 # Virtual environments
 venv/
 env/
 ml_venv/
+.venv/
 backend/venv/
 backend/venv_new/
 backend/ml_venv/
 backend/venv_run/
-.venv/
 
 # =========================
-# AI / ML (Large Files)
+# AI / ML — Large Dataset Files ONLY
 # =========================
+# Block the raw dataset files (100MB+) that cannot go to GitHub.
+# The ml/ folder itself, model files (.pkl, .h5, .joblib, .keras),
+# and all Python code inside ml/ are NOT ignored.
 
-# Dataset files (>100MB)
-backend/ml/datasets/data/household_power_consumption.txt
-ml/datasets/
-data/
-ml/datasets/
-ml/data/
+# Specific large dataset file
+ml/datasets/data/household_power_consumption.txt
 
-# Large ML model artifacts
-*.h5
-*.pt
-*.pth
-*.onnx
-*.keras
-*.pkl
-ml/models/
-ml/training/
-backend/ml/models/saved_models/
-backend/ml/training/saved_models/
+# Generic catch-all for any future large datasets dropped in these folders
+ml/datasets/data/*.txt
+ml/datasets/data/*.csv
+ml/datasets/data/*.parquet
+ml/datasets/data/*.zip
+ml/datasets/data/*.tar
+ml/datasets/data/*.tar.gz
+ml/datasets/data/*.gz
+
+# Backend copy (if datasets are ever placed there too)
+backend/ml/datasets/data/*.txt
+backend/ml/datasets/data/*.csv
+backend/ml/datasets/data/*.parquet
+backend/ml/datasets/data/*.zip
 
 # =========================
 # Build files
@@ -103,4 +109,3 @@ Desktop.ini
 # Docker
 # =========================
 .docker/
-backend/ml/datasets/data/household_power_consumption.txt
