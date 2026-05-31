@@ -14,7 +14,7 @@ from schemas import (
     PasswordResetRequest,
     ForgotPasswordRequest,
 )
-from utils.jwt import decode_token
+from utils.jwt import decode_token, create_access_token
 from utils.rate_limit import limiter
 from utils.email import send_password_reset_email
 from utils.logger import setup_logger
@@ -75,7 +75,7 @@ async def get_current_admin(user_id: str = Depends(get_current_user)):
 
 # ─── Register ────────────────────────────────────────────────────────────────
 
-@router.post("/register", response_model=UserResponse)
+@router.post("/register", response_model=TokenResponse, status_code=201)
 @limiter.limit("5/minute")
 async def register(request: Request, user_data: UserRegister):
     """Register a new user account."""
@@ -84,13 +84,22 @@ async def register(request: Request, user_data: UserRegister):
 
     try:
         user = await auth_service.register(user_data)
+
+        # Auto-login: create access token so client can be authenticated immediately
+        access_token = create_access_token(data={"sub": str(user["_id"])})
+
         return {
-            "id": str(user["_id"]),
-            "name": user["name"],
-            "email": user["email"],
-            "role": user["role"],
-            "energy_limit": user["energy_limit"],
-            "created_at": user.get("created_at"),
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "id": str(user["_id"]),
+                "name": user["name"],
+                "email": user["email"],
+                "role": user.get("role", "user"),
+                "energy_limit": user.get("energy_limit", 50.0),
+                "created_at": user.get("created_at"),
+            },
+            "message": "User registered successfully. You can now login.",
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -181,24 +190,17 @@ async def forgot_password(request: Request, payload: ForgotPasswordRequest):
     and is NEVER included in the API response.
     """
     db = get_db()
+    auth_service = AuthService(db)
     email = payload.email.lower().strip()
 
-    user = await db.users.find_one({"email": email})
-    if user:
-        token = secrets.token_urlsafe(32)
-        expiry = datetime.utcnow() + timedelta(hours=1)
+    token = secrets.token_urlsafe(32)
+    expiry = datetime.utcnow() + timedelta(hours=1)
 
-        # Store hashed token reference in DB
-        await db.users.update_one(
-            {"_id": user["_id"]},
-            {"$set": {"reset_token": token, "reset_token_expiry": expiry}},
-        )
-
+    if await auth_service.request_password_reset(email, token, expiry):
         # Send via email (SMTP or log-only fallback in dev)
         email_sent = await send_password_reset_email(email, token, expiry_hours=1)
         if not email_sent:
-            # Log failure internally — never expose to client
-            logger.error("Failed to dispatch reset email for user %s", str(user["_id"]))
+            logger.error("Failed to dispatch reset email for user %s", email)
 
     return {"message": "If this email is registered, a reset link has been sent."}
 

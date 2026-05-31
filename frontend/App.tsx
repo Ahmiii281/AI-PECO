@@ -76,6 +76,7 @@ const App: React.FC = () => {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={!authService.isAuthenticated() ? <Login /> : <Navigate to="/dashboard" replace />} />
           <Route path="/register" element={!authService.isAuthenticated() ? <Register /> : <Navigate to="/dashboard" replace />} />
+          <Route path="/reset-password" element={<Login />} />
           <Route
             path="/dashboard"
             element={

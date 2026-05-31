@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, Link, useLocation, useSearchParams } from 'react-router-dom';
 import authService from '../services/auth';
 import './Auth.css';
 
@@ -14,6 +14,25 @@ export default function Login() {
   const [error, setError] = useState('');
   const [view, setView] = useState<'login' | 'forgot' | 'reset'>('login');
   const [successMessage, setSuccessMessage] = useState('');
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      setResetToken(token);
+      setView('reset');
+      setError('');
+      setSuccessMessage('');
+      return;
+    }
+
+    if (location.pathname === '/reset-password') {
+      setView('reset');
+      setError('');
+      setSuccessMessage('');
+    }
+  }, [searchParams, location.pathname]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

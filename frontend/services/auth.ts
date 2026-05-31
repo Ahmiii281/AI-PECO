@@ -24,6 +24,7 @@ export interface AuthToken {
 class AuthService {
   private token: string | null = null;
   private user: User | null = null;
+  private listeners: Set<() => void> = new Set();
 
   constructor() {
     this.token = localStorage.getItem("access_token");
@@ -37,9 +38,17 @@ class AuthService {
     name: string,
     email: string,
     password: string
-  ): Promise<User> {
+  ): Promise<AuthToken> {
     const response = await authAPI.register(name, email, password);
-    return response;
+
+    if (response.access_token) {
+      this.setToken(response.access_token);
+    }
+    if (response.user) {
+      this.setUser(response.user);
+    }
+
+    return response as AuthToken;
   }
 
   async login(email: string, password: string): Promise<AuthToken> {
@@ -94,14 +103,28 @@ class AuthService {
     }
   }
 
+  subscribe(listener: () => void) {
+    this.listeners.add(listener);
+  }
+
+  unsubscribe(listener: () => void) {
+    this.listeners.delete(listener);
+  }
+
+  private emitAuthChange() {
+    this.listeners.forEach((listener) => listener());
+  }
+
   setToken(token: string) {
     this.token = token;
     localStorage.setItem("access_token", token);
+    this.emitAuthChange();
   }
 
   setUser(user: User) {
     this.user = user;
     localStorage.setItem("user", JSON.stringify(user));
+    this.emitAuthChange();
   }
 
   getToken(): string | null {
@@ -121,6 +144,7 @@ class AuthService {
     this.user = null;
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
+    this.emitAuthChange();
   }
 }
 

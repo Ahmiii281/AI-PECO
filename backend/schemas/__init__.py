@@ -35,6 +35,7 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: Optional[UserResponse] = None
+    message: Optional[str] = None
 
 
 class PasswordResetRequest(BaseModel):

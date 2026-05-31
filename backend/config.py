@@ -23,12 +23,12 @@ class Settings(BaseSettings):
 
     # ── Database ─────────────────────────────────────────────────────────────
     MONGODB_URL: str = "mongodb://localhost:27017"
-    DATABASE_NAME: str = "ba341914_db_users"
+    DATABASE_NAME: str = "aipeco_db"
 
     # ── JWT ───────────────────────────────────────────────────────────────────
     # CRITICAL: Must be a persistent, random 32+ character string in production.
     # Generate: python -c "import secrets; print(secrets.token_urlsafe(48))"
-    SECRET_KEY: str = ""
+    SECRET_KEY: str = "OfelwAclHvqGd51gRfM_D2WsSi3voTBalHZ5CYZwksOqYau7N-bu-9ONVikniypL"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
@@ -68,7 +68,7 @@ class Settings(BaseSettings):
 
     # ── Frontend ──────────────────────────────────────────────────────────────
     # Used to build password-reset links in emails.
-    FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_URL: str = "http://localhost:3000"
 
     # ── Features ─────────────────────────────────────────────────────────────
     ENABLE_AI_PREDICTIONS: bool = True

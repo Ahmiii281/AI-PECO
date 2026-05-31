@@ -1,14 +1,18 @@
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MenuIcon } from './Icons';
 import { healthAPI } from '../services/api';
+import authService from '../services/auth';
 
 interface HeaderProps {
   onMenuClick: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
+  const navigate = useNavigate();
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(authService.isAuthenticated());
 
   useEffect(() => {
     let isMounted = true;
@@ -23,11 +27,22 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     };
     checkHealth();
     const id = window.setInterval(checkHealth, 30000);
+
+    const updateAuth = () => setIsAuthenticated(authService.isAuthenticated());
+    authService.subscribe(updateAuth);
+
     return () => {
       isMounted = false;
+      authService.unsubscribe(updateAuth);
       window.clearInterval(id);
     };
   }, []);
+
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/login');
+  };
+
   return (
     <header className="p-4 flex justify-between items-center z-10 border-b" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border-default)' }}>
       <div className="flex items-center">
@@ -67,6 +82,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             </span>
           </div>
         </div>
+        {isAuthenticated && (
+          <button
+            onClick={handleLogout}
+            className="rounded-md border border-[var(--color-border-default)] bg-[var(--color-bg-card)] px-4 py-2 text-sm font-semibold text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)]"
+          >
+            Logout
+          </button>
+        )}
       </div>
     </header>
   );
