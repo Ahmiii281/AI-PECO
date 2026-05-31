@@ -4,12 +4,10 @@ Main FastAPI application
 """
 import os
 import sys
-# Add backend dir (for internal imports) and project root (for `ml` package)
+# Ensure backend dir is on sys.path so all sibling packages (routes, services, ml, etc.) resolve.
 _backend_dir = os.path.dirname(os.path.abspath(__file__))
-_project_root = os.path.dirname(_backend_dir)
-for _p in (_backend_dir, _project_root):
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
+if _backend_dir not in sys.path:
+    sys.path.insert(0, _backend_dir)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

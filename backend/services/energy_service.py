@@ -3,13 +3,6 @@ Energy data and analytics service
 """
 import os
 import sys
-# Ensure the project root is on sys.path so the `ml` package can be imported
-# regardless of where Python is invoked from (uvicorn, tests, direct script).
-_here = os.path.dirname(os.path.abspath(__file__))
-_root = os.path.dirname(os.path.dirname(_here))  # services/ -> backend/ -> project root
-for _p in (_here, os.path.dirname(_here), _root):
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
 
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorDatabase

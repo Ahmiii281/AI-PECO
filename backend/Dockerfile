@@ -13,8 +13,11 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy application code (includes ml/ as a sub-package)
 COPY . .
+
+# Set PYTHONPATH so ml/ and sibling packages are importable
+ENV PYTHONPATH=/app
 
 # Expose port
 EXPOSE 8000
