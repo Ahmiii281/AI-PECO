@@ -89,7 +89,7 @@ async def get_recommendation(
 
         # Analyze with anomaly-based AI model
         model = EnergyModel(
-            energy_price_per_unit=settings.ENERGY_PRICE_PER_UNIT,
+            energy_price_per_unit=settings.ELECTRICITY_TARIFF_PKR,
             anomaly_threshold_sigma=settings.ANOMALY_THRESHOLD_SIGMA
         )
 

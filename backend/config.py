@@ -81,6 +81,11 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
     @property
+    def ENERGY_PRICE_PER_UNIT(self) -> float:
+        """Alias for ELECTRICITY_TARIFF_PKR — keeps legacy references working."""
+        return self.ELECTRICITY_TARIFF_PKR
+
+    @property
     def smtp_configured(self) -> bool:
         """True if all required SMTP fields are set."""
         return bool(self.SMTP_HOST and self.SMTP_USER and self.SMTP_PASS)

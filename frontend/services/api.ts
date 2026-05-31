@@ -65,13 +65,13 @@ function classifyError(err: unknown, status?: number): string {
 }
 
 // ─── Core API call with retry ─────────────────────────────────────────────────
-async function apiCall(
+async function apiCall<T = unknown>(
   endpoint: string,
   method: string = "GET",
   data?: unknown,
   extraHeaders?: Record<string, string>,
   options: { timeoutMs?: number; retries?: number } = {}
-): Promise<unknown> {
+): Promise<T> {
   const { timeoutMs = DEFAULT_TIMEOUT_MS, retries = MAX_RETRIES } = options;
   const token = getToken();
   const url = `${API_BASE_URL}${endpoint}`;
@@ -134,7 +134,7 @@ async function apiCall(
       if (contentType.includes("application/json")) {
         return await response.json();
       }
-      return {};
+      return {} as unknown as T;
     } catch (err) {
       // Network/timeout error — retry if attempts remain
       const isRetryable =
@@ -166,89 +166,89 @@ async function apiCall(
 // ─── Authentication ───────────────────────────────────────────────────────────
 export const authAPI = {
   register: (name: string, email: string, password: string) =>
-    apiCall("/api/auth/register", "POST", { name, email, password }),
+    apiCall<any>("/api/auth/register", "POST", { name, email, password }),
 
   login: (email: string, password: string) =>
-    apiCall("/api/auth/login", "POST", { email, password }),
+    apiCall<any>("/api/auth/login", "POST", { email, password }),
 
   forgotPassword: (email: string) =>
-    apiCall("/api/auth/forgot-password", "POST", { email }),
+    apiCall<any>("/api/auth/forgot-password", "POST", { email }),
 
   resetPassword: (token: string, newPassword: string) =>
-    apiCall("/api/auth/reset-password", "POST", { token, new_password: newPassword }),
+    apiCall<any>("/api/auth/reset-password", "POST", { token, new_password: newPassword }),
 
-  getProfile: () => apiCall("/api/auth/me", "GET"),
+  getProfile: () => apiCall<any>("/api/auth/me", "GET"),
 };
 
 // ─── Devices ──────────────────────────────────────────────────────────────────
 export const deviceAPI = {
-  getAll: () => apiCall("/api/devices", "GET"),
+  getAll: () => apiCall<any[]>("/api/devices", "GET"),
 
   create: (name: string, location: string, relay_pin?: number) =>
-    apiCall("/api/devices", "POST", { name, location, relay_pin }),
+    apiCall<any>("/api/devices", "POST", { name, location, relay_pin }),
 
-  getOne: (deviceId: string) => apiCall(`/api/devices/${deviceId}`, "GET"),
+  getOne: (deviceId: string) => apiCall<any>(`/api/devices/${deviceId}`, "GET"),
 
   update: (deviceId: string, data: unknown) =>
-    apiCall(`/api/devices/${deviceId}`, "PUT", data),
+    apiCall<any>(`/api/devices/${deviceId}`, "PUT", data),
 
-  delete: (deviceId: string) => apiCall(`/api/devices/${deviceId}`, "DELETE"),
+  delete: (deviceId: string) => apiCall<any>(`/api/devices/${deviceId}`, "DELETE"),
 };
 
 // ─── Energy Data ──────────────────────────────────────────────────────────────
 export const energyAPI = {
   getDeviceHistory: (deviceId: string, hours: number = 24) =>
-    apiCall(`/api/energy/device/${deviceId}?hours=${hours}`, "GET"),
+    apiCall<any[]>(`/api/energy/device/${deviceId}?hours=${hours}`, "GET"),
 
   getAlerts: (resolved: boolean = false) =>
-    apiCall(`/api/energy/alerts?resolved=${resolved}`, "GET"),
+    apiCall<any[]>(`/api/energy/alerts?resolved=${resolved}`, "GET"),
 
   createAlert: (message: string, alertType: string = "warning") =>
-    apiCall("/api/energy/alerts", "POST", { message, alert_type: alertType }),
+    apiCall<any>("/api/energy/alerts", "POST", { message, alert_type: alertType }),
 
   resolveAlert: (alertId: string) =>
-    apiCall(`/api/energy/alerts/${alertId}`, "PUT"),
+    apiCall<any>(`/api/energy/alerts/${alertId}`, "PUT"),
 };
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 export const dashboardAPI = {
   getStats: () =>
-    apiCall("/api/dashboard/stats", "GET", undefined, undefined, {
+    apiCall<any>("/api/dashboard/stats", "GET", undefined, undefined, {
       timeoutMs: COLD_START_TIMEOUT_MS, // first load can be slow on Render
     }),
 
   controlRelay: (deviceId: string, command: "ON" | "OFF") =>
-    apiCall(`/api/dashboard/relay/${deviceId}`, "POST", { device_id: deviceId, command }),
+    apiCall<any>(`/api/dashboard/relay/${deviceId}`, "POST", { device_id: deviceId, command }),
 
   getRecommendation: (deviceId: string) =>
-    apiCall(`/api/dashboard/recommendation/${deviceId}`, "GET"),
+    apiCall<any>(`/api/dashboard/recommendation/${deviceId}`, "GET"),
 
   getDeviceCommand: (deviceId: string) =>
-    apiCall(`/api/dashboard/device-command/${deviceId}`, "GET"),
+    apiCall<any>(`/api/dashboard/device-command/${deviceId}`, "GET"),
 };
 
 // ─── Billing ──────────────────────────────────────────────────────────────────
 export const billingAPI = {
-  getCategories: () => apiCall("/api/billing/categories"),
-  estimate: (data: unknown) => apiCall("/api/billing/estimate", "POST", data),
+  getCategories: () => apiCall<any[]>("/api/billing/categories"),
+  estimate: (data: unknown) => apiCall<any>("/api/billing/estimate", "POST", data),
 };
 
 // ─── Predictions / AI ─────────────────────────────────────────────────────────
 export const predictionsAPI = {
   getForecast: (deviceId: string) =>
-    apiCall(`/api/predictions/forecast/${deviceId}`, "GET"),
+    apiCall<any>(`/api/predictions/forecast/${deviceId}`, "GET"),
 
   getDisaggregation: (deviceId: string) =>
-    apiCall(`/api/predictions/disaggregate/${deviceId}`, "GET"),
+    apiCall<any>(`/api/predictions/disaggregate/${deviceId}`, "GET"),
 
-  getRLSuggestion: () => apiCall("/api/predictions/rl-suggestion", "GET"),
+  getRLSuggestion: () => apiCall<any>("/api/predictions/rl-suggestion", "GET"),
 
   /**
    * Smart analysis — uses POST to keep query out of URL/access logs.
    * Backend: POST /api/predictions/smart-analysis  { query: string }
    */
   getSmartAnalysis: (query: string) =>
-    apiCall("/api/predictions/smart-analysis", "POST", { query }),
+    apiCall<any>("/api/predictions/smart-analysis", "POST", { query }),
 };
 
 // ─── Health Check ─────────────────────────────────────────────────────────────

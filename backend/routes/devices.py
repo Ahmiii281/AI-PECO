@@ -4,7 +4,7 @@ Device management routes
 from fastapi import APIRouter, Depends, HTTPException, status
 from routes.auth import get_current_user, get_current_admin
 from services.device_service import DeviceService
-from schemas import DeviceCreate, DeviceUpdate, DeviceResponse, UserResponse
+from schemas import DeviceCreate, DeviceUpdate, DeviceResponse
 from database import get_db
 
 router = APIRouter(prefix="/api/devices", tags=["devices"])

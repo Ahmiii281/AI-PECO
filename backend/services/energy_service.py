@@ -1,12 +1,23 @@
 """
 Energy data and analytics service
 """
+import os
+import sys
+# Ensure the project root is on sys.path so the `ml` package can be imported
+# regardless of where Python is invoked from (uvicorn, tests, direct script).
+_here = os.path.dirname(os.path.abspath(__file__))
+_root = os.path.dirname(os.path.dirname(_here))  # services/ -> backend/ -> project root
+for _p in (_here, os.path.dirname(_here), _root):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from datetime import datetime, timedelta
 from typing import List
 import statistics
 from schemas import AlertResponse
+from ml.inference.energy_model import EnergyModel
 
 
 class EnergyService:
@@ -103,10 +114,6 @@ class EnergyService:
         Get aggregated dashboard statistics for user
         """
         # Get user's devices
-        import sys
-        import os
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-        from ml.inference.energy_model import EnergyModel
         devices = await self.db.devices.find(
             {"user_id": ObjectId(user_id)}
         ).to_list(100)
