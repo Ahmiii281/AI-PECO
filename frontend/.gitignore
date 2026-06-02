@@ -1,0 +1,111 @@
+# =========================
+# Logs & Runtime files
+# =========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Auto-generated runtime log files (not source)
+backend/error.txt
+backend/startup_log.txt
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+**/node_modules/
+dist/
+dist-ssr/
+*.local
+
+# =========================
+# Environment & Secrets
+# =========================
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env.production
+esp32/credentials.h
+# .env.example is intentionally NOT ignored — it serves as a template
+
+# =========================
+# Python
+# =========================
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyo
+.pytest_cache/
+**/.pytest_cache/
+
+# Virtual environments
+venv/
+env/
+ml_venv/
+.venv/
+backend/venv/
+backend/venv_new/
+backend/ml_venv/
+backend/venv_run/
+
+# =========================
+# AI / ML — Large Dataset Files ONLY
+# =========================
+# Block the raw dataset files (100MB+) that cannot go to GitHub.
+# The ml/ folder itself, model files (.pkl, .h5, .joblib, .keras),
+# and all Python code inside ml/ are NOT ignored.
+
+# Specific large dataset file
+ml/datasets/data/household_power_consumption.txt
+
+# Generic catch-all for any future large datasets dropped in these folders
+ml/datasets/data/*.txt
+ml/datasets/data/*.csv
+ml/datasets/data/*.parquet
+ml/datasets/data/*.zip
+ml/datasets/data/*.tar
+ml/datasets/data/*.tar.gz
+ml/datasets/data/*.gz
+
+# Backend copy (if datasets are ever placed there too)
+backend/ml/datasets/data/*.txt
+backend/ml/datasets/data/*.csv
+backend/ml/datasets/data/*.parquet
+backend/ml/datasets/data/*.zip
+
+# =========================
+# Build files
+# =========================
+build/
+dist/
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# =========================
+# OS files
+# =========================
+Thumbs.db
+Desktop.ini
+
+# =========================
+# Docker
+# =========================
+.docker/
