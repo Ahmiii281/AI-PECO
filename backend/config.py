@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     # ── CORS — comma-separated origins ────────────────────────────────────────
     CORS_ORIGINS: str = (
         "http://localhost:3000,http://127.0.0.1:3000," \
-        "http://localhost:5173,http://127.0.0.1:5173,https://ai-peco.vercel.app"
+        "http://localhost:5173,http://127.0.0.1:5173,https://ai-peco.vercel.app,https://ai-peco-frontend.vercel.app"
     )
 
     # ── ESP32 / Device API ───────────────────────────────────────────────────
@@ -68,7 +68,7 @@ class Settings(BaseSettings):
 
     # ── Frontend ──────────────────────────────────────────────────────────────
     # Used to build password-reset links in emails.
-    FRONTEND_URL: str = "http://localhost:3000"
+    FRONTEND_URL: str = "https://ai-peco-frontend.vercel.app"
 
     # ── Features ─────────────────────────────────────────────────────────────
     ENABLE_AI_PREDICTIONS: bool = True

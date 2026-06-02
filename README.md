@@ -48,6 +48,10 @@ git clone https://github.com/Ahmiii281/AI-PECO.git
 cd AI-PECO
 ```
 
+> **Separate Repos:** Frontend and Backend are also available as individual repos:
+> - Frontend: [github.com/Ahmiii281/AI-PECO-Frontend](https://github.com/Ahmiii281/AI-PECO-Frontend)
+> - Backend: [github.com/Ahmiii281/AI-PECO-Backend](https://github.com/Ahmiii281/AI-PECO-Backend)
+
 ### 2. Configuration Setup
 
 Copy the example environment files and update them:

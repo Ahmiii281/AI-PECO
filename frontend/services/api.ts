@@ -166,10 +166,14 @@ async function apiCall<T = unknown>(
 // ─── Authentication ───────────────────────────────────────────────────────────
 export const authAPI = {
   register: (name: string, email: string, password: string) =>
-    apiCall<any>("/api/auth/register", "POST", { name, email, password }),
+    apiCall<any>("/api/auth/register", "POST", { name, email, password }, undefined, {
+      timeoutMs: COLD_START_TIMEOUT_MS,
+    }),
 
   login: (email: string, password: string) =>
-    apiCall<any>("/api/auth/login", "POST", { email, password }),
+    apiCall<any>("/api/auth/login", "POST", { email, password }, undefined, {
+      timeoutMs: COLD_START_TIMEOUT_MS,
+    }),
 
   forgotPassword: (email: string) =>
     apiCall<any>("/api/auth/forgot-password", "POST", { email }),

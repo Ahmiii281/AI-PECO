@@ -17,17 +17,15 @@ This document explains how to deploy the **AI-PECO** system (Frontend, Backend, 
    - `VITE_USE_DEMO_DATA`: Set to `false` for live data or `true` for demonstration.
 5. Click **"Deploy"**.
 
-## 3. Backend Deployment (Railway/Render)
-The FastAPI backend requires a server environment (Vercel is primarily for static/serverless frontend).
-1. Connect your GitHub repo to **Railway.app** or **Render.com**.
-2. Set the **Root Directory** to `backend`.
-3. **Environment Variables** (Copy from `backend/.env`):
+## 3. Backend Deployment (Vercel Serverless)
+The FastAPI backend is deployed as a Vercel serverless function using `backend/vercel.json`.
+1. Connect your GitHub **Backend** repo to **Vercel**: [github.com/Ahmiii281/AI-PECO-Backend](https://github.com/Ahmiii281/AI-PECO-Backend)
+2. Vercel auto-detects `backend/vercel.json` configuration.
+3. **Environment Variables** (Set in Vercel Dashboard):
    - `MONGODB_URL`: Your Atlas connection string.
-   - `SECRET_KEY`: A secure random string for JWT.
-   - `DEBUG`: `False`
-4. **Build/Start Commands:**
-   - Build: `pip install -r requirements.txt`
-   - Start: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+   - `SECRET_KEY`: A secure random string for JWT (48+ chars).
+   - `DEBUG`: `false` (production)
+   - `CORS_ORIGINS`: `https://ai-peco-frontend.vercel.app`
 
 ## 4. Database Setup (MongoDB Atlas)
 1. Ensure your MongoDB Atlas user has read/write permissions.

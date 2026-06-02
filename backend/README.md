@@ -182,18 +182,46 @@ backend/
 - `POST /api/energy/alerts` – Create alert
 - `PUT /api/energy/alerts/{alert_id}` – Resolve alert
 
-## Deployment (Render)
+## Deployment (Vercel Serverless)
 
-### 1. Create Render Account
+### 1. Deploy Backend Separately to Vercel
 
-Visit https://render.com (free tier available)
+Use the backend-only repository: [github.com/Ahmiii281/AI-PECO-Backend](https://github.com/Ahmiii281/AI-PECO-Backend)
 
-### 2. Create Web Service
+**Steps:**
+1. Go to [vercel.com](https://vercel.com)
+2. Click **Add New Project** → Import the Backend repo
+3. Vercel auto-detects `backend/vercel.json`
+4. Configure environment variables (see below)
+5. Deploy
 
-- Connect your GitHub repo
-- **Build Command:** `pip install -r backend/requirements.txt`
-- **Start Command:** `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-- Add environment variables from `.env`
+### 2. Backend will be available at:
+
+```
+https://ai-peco-backend.vercel.app/
+```
+
+**API docs:** https://ai-peco-backend.vercel.app/docs
+
+### 3. Vercel Deployment Notes
+
+When deploying on Vercel, keep these in mind:
+
+- **No persistent filesystem:** Use MongoDB Atlas (not local SQLite)
+- **Function timeout:** 60 seconds (default)
+- **Memory limit:** 1024MB (default)
+- **Cold starts:** First request takes ~2–5s; subsequent requests are faster
+- **Logs:** View in Vercel Dashboard under "Deployments" → "Logs"
+- **Environment variables:** Set in Vercel Dashboard (not in `.env` file)
+
+### 4. CORS Configuration
+
+Backend automatically accepts these origins from environment:
+```env
+CORS_ORIGINS=https://ai-peco-frontend.vercel.app,http://localhost:3000,http://localhost:5173
+```
+
+Update this value in Vercel environment variables if your frontend domain changes.
 
 ### 3. CORS Configuration
 
