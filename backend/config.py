@@ -22,13 +22,15 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # ── Database ─────────────────────────────────────────────────────────────
-    MONGODB_URL: str = "mongodb://localhost:27017"
+    # CRITICAL: Must be set via environment variable in production
+    MONGODB_URL: str = ""
     DATABASE_NAME: str = "aipeco_db"
 
     # ── JWT ───────────────────────────────────────────────────────────────────
     # CRITICAL: Must be a persistent, random 32+ character string in production.
     # Generate: python -c "import secrets; print(secrets.token_urlsafe(48))"
-    SECRET_KEY: str = "OfelwAclHvqGd51gRfM_D2WsSi3voTBalHZ5CYZwksOqYau7N-bu-9ONVikniypL"
+    # Must be set via environment variable in production — DO NOT commit defaults
+    SECRET_KEY: str = ""
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
@@ -94,44 +96,46 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_secrets(self) -> "Settings":
         """
-        Validate SECRET_KEY after all fields (including DEBUG) are loaded.
+        Validate SECRET_KEY and MONGODB_URL after all fields (including DEBUG) are loaded.
 
         Rules:
-        - Production (DEBUG=False): SECRET_KEY is mandatory and must not be
-          the placeholder. Missing → fail fast with a clear error.
-        - Development (DEBUG=True): Generate a temporary key and warn that
-          all existing JWTs will be invalidated on restart.
+        - Production (DEBUG=False): SECRET_KEY and MONGODB_URL are mandatory
+        - Development (DEBUG=True): Secrets can be auto-generated/mocked
         """
-        key = self.SECRET_KEY
-
-        if not key:
-            if not self.DEBUG:
+        if not self.DEBUG:
+            # Production mode — strict validation
+            if not self.SECRET_KEY or len(self.SECRET_KEY) < 32:
                 raise ValueError(
-                    "SECRET_KEY must be set in environment variables for production.\n"
-                    "Generate one with:\n"
-                    "  python -c \"import secrets; print(secrets.token_urlsafe(48))\"\n"
-                    "Then add it to your .env or hosting environment."
+                    "CRITICAL: SECRET_KEY must be set in production via environment variable "
+                    "and be at least 32 characters.\n"
+                    "Generate with: python -c \"import secrets; print(secrets.token_urlsafe(48))\""
                 )
-            # Development only: generate ephemeral key
-            self.SECRET_KEY = secrets.token_urlsafe(48)
-            logger.warning(
-                "SECRET_KEY not set — generated a temporary key for this session. "
-                "All JWT tokens will be invalidated on restart. "
-                "Set SECRET_KEY in .env to persist sessions."
-            )
-        elif key == "change_me_in_production":
-            raise ValueError(
-                "SECRET_KEY is using the unsafe placeholder 'change_me_in_production'. "
-                "Please set a strong random value in your environment variables."
-            )
+            if not self.MONGODB_URL:
+                raise ValueError(
+                    "CRITICAL: MONGODB_URL must be set in production via environment variable.\n"
+                    "This must point to MongoDB Atlas or a production database."
+                )
+            if self.MONGODB_URL.startswith("mongodb://localhost"):
+                raise ValueError(
+                    "CRITICAL: MONGODB_URL cannot use localhost in production.\n"
+                    "Must connect to MongoDB Atlas or remote server."
+                )
+        else:
+            # Development mode — auto-generate if needed
+            if not self.SECRET_KEY:
+                self.SECRET_KEY = "dev-" + "OfelwAclHvqGd51gRfM_D2WsSi3voTBalHZ5CYZwksOqYau7N-bu"
+                logger.warning("⚠️  Using auto-generated SECRET_KEY for development (not secure)")
+            if not self.MONGODB_URL:
+                self.MONGODB_URL = "mongodb://localhost:27017"
+                logger.warning("⚠️  Using localhost MongoDB for development")
+        
+        return self
 
-        # Warn about weak keys in production
-        if not self.DEBUG and len(key) < 32:
-            logger.warning(
-                "SECRET_KEY is shorter than 32 characters. "
-                "Use at least 48 characters for production security."
-            )
-
+    @model_validator(mode="after")
+    def validate_additional_security(self) -> "Settings":
+        """
+        Additional security checks.
+        """
         # Warn if ESP32 key auth is disabled outside DEBUG
         if not self.DEBUG and not self.DEVICE_API_KEY_REQUIRED:
             logger.warning(

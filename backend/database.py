@@ -50,13 +50,15 @@ async def connect_db() -> None:
         if not settings.DEBUG:
             logger.critical(
                 "MongoDB connection FAILED in production mode.\n"
-                "URL: %s\nError: %s\n\n"
+                "URL: %s...\nError: %s\n\n"
                 "Fix: Ensure MONGODB_URL is correct and the database is reachable.\n"
                 "The application cannot start without a database connection.",
-                settings.MONGODB_URL,
+                settings.MONGODB_URL[:50] + "..." if settings.MONGODB_URL else "[not set]",
                 exc,
             )
-            raise SystemExit(1) from exc
+            # Re-raise to prevent app startup, but don't use SystemExit
+            # FastAPI's lifespan will handle this and return error to client
+            raise RuntimeError("Database connection failed in production") from exc
 
         # Development only: use in-memory mock
         logger.warning(

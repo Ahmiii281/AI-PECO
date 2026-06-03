@@ -18,6 +18,9 @@
   "author": "AI-PECO Team",
   "license": "MIT",
   "dependencies": {
-    "cloc": "^2.6.0-cloc"
+    "autoprefixer": "^10.5.0",
+    "cloc": "^2.6.0-cloc",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^3.4.19"
   }
 }

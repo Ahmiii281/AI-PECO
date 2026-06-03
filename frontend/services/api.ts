@@ -11,7 +11,17 @@
  */
 
 const rawApiUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
-const API_BASE_URL = (rawApiUrl?.toString().trim().replace(/\/+$/, "")) || "http://localhost:8000";
+const API_BASE_URL = (rawApiUrl?.toString().trim().replace(/\/+$/, "")) || "";
+
+// Validate API URL is configured
+if (!API_BASE_URL && import.meta.env.MODE === 'production') {
+  console.error(
+    "🚨 CRITICAL: VITE_API_URL environment variable is not set. \n" +
+    "Frontend cannot communicate with backend. Set it in .env or Vercel environment variables."
+  );
+} else if (!API_BASE_URL) {
+  console.warn("⚠️ VITE_API_URL not configured — defaulting to relative requests");
+}
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 const COLD_START_TIMEOUT_MS = 30_000; // Render free tier can take ~25s to wake

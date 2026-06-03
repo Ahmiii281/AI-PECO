@@ -38,17 +38,22 @@ async def lifespan(app: FastAPI):
     global _demo_task
 
     # Startup
-    await connect_db()
-    logger.info("AI-PECO Backend Started")
+    try:
+        await connect_db()
+        logger.info("AI-PECO Backend Started")
+    except RuntimeError as e:
+        logger.critical("Failed to start application: %s", e)
+        raise
 
-    # Log ML model availability
+    # Log ML model availability (non-critical)
     try:
         from ml.inference.model_check import log_model_status
         log_model_status()
     except Exception as e:
+        # Don't fail app startup if ML models aren't available
         logger.warning("Could not check ML model status: %s", e)
 
-    # Start demo mode if enabled
+    # Start demo mode if enabled (non-critical)
     if DEMO_MODE:
         logger.info("DEMO_MODE is ON -- starting simulated data generation")
         try:
@@ -56,7 +61,8 @@ async def lifespan(app: FastAPI):
             db = get_db()
             _demo_task = await start_demo_mode(db)
         except Exception as e:
-            logger.error("Failed to start demo mode: %s", e)
+            # Don't fail app startup if demo mode fails
+            logger.warning("Could not start demo mode: %s", e)
 
     yield
 
