@@ -1,58 +1,60 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 
 :root {
   /* ── Backgrounds ── */
   --color-bg-primary:     #0F172A;
-  --color-bg-secondary:   #1E293B;
-  --color-bg-card:        #1E293B;
-  --color-bg-card-hover:  #263348;
-  --color-bg-chart:       #162032;
-  --color-bg-input:       #1E293B;
+  --color-bg-secondary:   #111D2E;
+  --color-bg-card:        #132035;
+  --color-bg-card-hover:  #1A2D45;
+  --color-bg-chart:       #0D1B2E;
+  --color-bg-input:       #132035;
 
-  /* ── Cyan Accent ── */
-  --color-accent-primary:       #06B6D4;
-  --color-accent-primary-light: #67E8F9;
-  --color-accent-primary-dim:   #0E7490;
-  --color-accent-glow:          rgba(6, 182, 212, 0.13);
+  /* ── Green Palette (AI-PECO Brand) ── */
+  --color-accent-primary:       #16A34A;   /* Primary Green  */
+  --color-accent-primary-light: #22C55E;   /* Accent Green   */
+  --color-accent-dark:          #166534;   /* Dark Green     */
+  --color-accent-soft:          #DCFCE7;   /* Light Green bg */
+  --color-accent-glow:          rgba(22, 163, 74, 0.15);
+  --color-accent-glow-strong:   rgba(34, 197, 94, 0.22);
 
   /* ── Text ── */
   --color-text-primary:   #F1F5F9;
   --color-text-secondary: #94A3B8;
-  --color-text-muted:     #475569;
-  --color-text-accent:    #67E8F9;
+  --color-text-muted:     #64748B;
+  --color-text-accent:    #22C55E;
 
   /* ── Status ── */
-  --color-success:        #10B981;
+  --color-success:        #22C55E;
   --color-warning:        #F59E0B;
   --color-danger:         #EF4444;
   --color-info:           #38BDF8;
 
   /* ── Borders ── */
-  --color-border-default: #334155;
-  --color-border-accent:  #0E7490;
-  --color-border-subtle:  #1E293B;
+  --color-border-default: #1E3A2F;
+  --color-border-accent:  #166534;
+  --color-border-subtle:  #132035;
 
   /* ── Sidebar ── */
-  --color-sidebar-bg:         #1E293B;
+  --color-sidebar-bg:         #0B1827;
   --color-sidebar-text:       #94A3B8;
-  --color-sidebar-active-bg:  #0E7490;
-  --color-sidebar-active-text:#F1F5F9;
-  --color-sidebar-hover-bg:   #263348;
+  --color-sidebar-active-bg:  rgba(22, 163, 74, 0.18);
+  --color-sidebar-active-text:#22C55E;
+  --color-sidebar-hover-bg:   rgba(22, 163, 74, 0.08);
 
   /* ── Chart ── */
-  --color-chart-line:     #06B6D4;
+  --color-chart-line:     #22C55E;
   --color-chart-forecast: #94A3B8;
-  --color-chart-fill:     #06B6D415;
-  --color-chart-grid:     #1E293B;
+  --color-chart-fill:     rgba(34, 197, 94, 0.12);
+  --color-chart-grid:     #1A2D45;
 
   /* ── Typography ── */
   --font-primary:   'Inter', sans-serif;
   --font-mono:      'JetBrains Mono', monospace;
 
   /* ── Radius ── */
-  --radius-card:    12px;
+  --radius-card:    14px;
   --radius-button:  8px;
   --radius-badge:   6px;
 }
@@ -70,8 +72,9 @@ body {
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   background-image:
-    radial-gradient(circle at top left, rgba(6, 182, 212, 0.08), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(103, 232, 249, 0.05), transparent 24%);
+    radial-gradient(ellipse at top left,    rgba(22, 163, 74, 0.10), transparent 40%),
+    radial-gradient(ellipse at bottom right, rgba(34, 197, 94, 0.06), transparent 35%),
+    radial-gradient(circle at 70% 20%,      rgba(22, 101, 52, 0.06), transparent 30%);
 }
 
 * {
@@ -82,9 +85,9 @@ button, input, textarea, select {
   font: inherit;
 }
 
-/* Custom Scrollbar */
+/* ── Custom Scrollbar ── */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -92,32 +95,40 @@ button, input, textarea, select {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(6, 182, 212, 0.35);
+  background: rgba(22, 163, 74, 0.40);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(6, 182, 212, 0.55);
+  background: rgba(34, 197, 94, 0.60);
 }
 
+/* ── Selection ── */
+::selection {
+  background: var(--color-accent-primary);
+  color: #fff;
+}
+
+/* ── Card ── */
 .pcb-card {
   background-color: var(--color-bg-card);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-card);
   overflow: hidden;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.22s ease-in-out;
 }
 
 .pcb-card:hover {
   background-color: var(--color-bg-card-hover);
-  border-color: var(--color-border-accent);
-  box-shadow: 0 0 24px rgba(6, 182, 212, 0.12);
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 28px var(--color-accent-glow), 0 4px 20px rgba(0,0,0,0.3);
 }
 
+/* ── Digital / Mono values ── */
 .digital-value {
   font-family: var(--font-mono);
   color: var(--color-text-accent);
-  text-shadow: 0 0 14px rgba(103, 232, 249, 0.25);
+  text-shadow: 0 0 16px rgba(34, 197, 94, 0.30);
 }
 
 .label-text {
@@ -128,14 +139,17 @@ button, input, textarea, select {
   letter-spacing: 0.15em;
 }
 
+/* ── Stat card ── */
 .stat-card {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-card);
 }
 
+/* ── Sidebar ── */
 .sidebar {
   background: var(--color-sidebar-bg);
+  border-right: 1px solid var(--color-border-default);
 }
 
 .nav-item {
@@ -151,70 +165,185 @@ button, input, textarea, select {
 
 .nav-item:hover {
   background: var(--color-sidebar-hover-bg);
+  color: var(--color-accent-primary-light);
 }
 
+/* ── RL Agent badge ── */
 .rl-agent-bar {
-  background: rgba(12, 74, 110, 0.12);
-  border: 1px solid var(--color-accent-primary-dim);
-  color: var(--color-info);
+  background: rgba(22, 101, 52, 0.12);
+  border: 1px solid var(--color-accent-dark);
+  color: var(--color-accent-primary-light);
   font-family: var(--font-mono);
   font-size: 0.75rem;
   padding: 0.5rem 1rem;
   border-radius: var(--radius-badge);
 }
 
+/* ── Online badge ── */
 .badge-online {
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(34, 197, 94, 0.12);
   color: var(--color-success);
   font-size: 0.7rem;
   padding: 2px 8px;
   border-radius: 999px;
+  border: 1px solid rgba(34, 197, 94, 0.25);
 }
 
+/* ── Chart wrapper ── */
 .chart-theme {
   background: var(--color-bg-chart);
   border: 1px solid var(--color-border-subtle);
 }
 
+/* ── Form elements ── */
 input,
 textarea,
 select {
   background: var(--color-bg-input);
   border: 1px solid var(--color-border-default);
   color: var(--color-text-primary);
+  border-radius: var(--radius-button);
 }
 
 input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.18);
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
 }
 
-/* Utility overrides to adapt existing Tailwind color utilities to the Slate + Cyan theme
-   These help avoid editing every component while keeping layout and classes intact. */
+/* ── Glassmorphism panels ── */
+.glass-panel {
+  background: rgba(19, 32, 53, 0.70);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(22, 163, 74, 0.20);
+  border-radius: var(--radius-card);
+}
 
-.bg-white { background-color: var(--color-bg-card) !important; }
-.bg-black { background-color: var(--color-bg-secondary) !important; }
-.bg-gray-50, .bg-gray-100, .bg-gray-200 { background-color: var(--color-bg-card) !important; }
-.bg-gray-700, .dark\:bg-gray-700 { background-color: var(--color-bg-card) !important; }
+/* ── Primary button ── */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-dark));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-button);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  box-shadow: 0 4px 14px var(--color-accent-glow);
+}
 
-.text-white { color: var(--color-text-primary) !important; }
-.text-gray-800 { color: var(--color-text-primary) !important; }
-.text-gray-500, .text-gray-400, .text-gray-300 { color: var(--color-text-secondary) !important; }
-.text-green-500, .text-emerald-500 { color: var(--color-accent-primary) !important; }
-.text-green-600 { color: var(--color-accent-primary-dim) !important; }
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-accent-primary-light), var(--color-accent-primary));
+  box-shadow: 0 6px 22px var(--color-accent-glow-strong);
+  transform: translateY(-2px);
+}
 
-.text-red-500, .hover\:text-red-500 { color: var(--color-danger) !important; }
-.text-yellow-500 { color: var(--color-warning) !important; }
-.hover\:bg-green-600, .peer-checked\:bg-green-600 { background-color: var(--color-accent-primary) !important; }
-.focus\:ring-green-500, .focus\:ring-red-500 { box-shadow: 0 0 0 3px rgba(6,182,212,0.12) !important; }
+/* ── Glow divider ── */
+.glow-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent-primary), transparent);
+  opacity: 0.35;
+  margin: 1.5rem 0;
+}
 
-.border-gray-300, .border-gray-200, .border-\[\#333\], .border-zinc-900 { border-color: var(--color-border-default) !important; }
-.border-gray-600, .dark\:border-gray-600 { border-color: var(--color-border-accent) !important; }
+/* ═══════════════════════════════════════════════════════════
+   Tailwind override layer — maps old utility classes to the
+   new green token set so existing TSX components get themed
+   without touching every file.
+═══════════════════════════════════════════════════════════ */
 
-/* Fixed: Forward slash escaped for seamless CSS parsing */
-.shadow-green-500\/20, .hover\:shadow-green-500\/20 { box-shadow: 0 10px 30px rgba(6,182,212,0.06) !important; }
+/* Backgrounds */
+.bg-white    { background-color: var(--color-bg-card)      !important; }
+.bg-black    { background-color: var(--color-bg-secondary) !important; }
+.bg-gray-50,
+.bg-gray-100,
+.bg-gray-200 { background-color: var(--color-bg-card)      !important; }
+.bg-gray-700,
+.dark\:bg-gray-700 { background-color: var(--color-bg-card) !important; }
 
-/* Selection styles fallback */
-::selection { background: var(--color-accent-primary); color: var(--color-text-primary); }
+/* Text */
+.text-white   { color: var(--color-text-primary)   !important; }
+.text-gray-800 { color: var(--color-text-primary)  !important; }
+.text-gray-500,
+.text-gray-400,
+.text-gray-300 { color: var(--color-text-secondary) !important; }
+
+/* Green accent text (formerly cyan) */
+.text-green-500,
+.text-emerald-500 { color: var(--color-accent-primary-light) !important; }
+.text-green-600   { color: var(--color-accent-primary)       !important; }
+
+/* Status text */
+.text-red-500,
+.hover\:text-red-500 { color: var(--color-danger)  !important; }
+.text-yellow-500     { color: var(--color-warning) !important; }
+
+/* Button / toggle backgrounds */
+.hover\:bg-green-600,
+.peer-checked\:bg-green-600 { background-color: var(--color-accent-primary) !important; }
+
+/* Focus rings */
+.focus\:ring-green-500,
+.focus\:ring-red-500 { box-shadow: 0 0 0 3px var(--color-accent-glow) !important; }
+
+/* Borders */
+.border-gray-300,
+.border-gray-200,
+.border-\[\#333\],
+.border-zinc-900   { border-color: var(--color-border-default) !important; }
+.border-gray-600,
+.dark\:border-gray-600 { border-color: var(--color-accent-primary) !important; }
+
+/* Shadows */
+.shadow-green-500\/20,
+.hover\:shadow-green-500\/20 { box-shadow: 0 10px 30px var(--color-accent-glow) !important; }
+
+/* ── Animated gradient text utility ── */
+.gradient-text {
+  background: linear-gradient(135deg, #22C55E 0%, #16A34A 50%, #86EFAC 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Pulsing eco dot indicator ── */
+@keyframes eco-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.50); }
+  50%       { box-shadow: 0 0 0 8px rgba(34,197,94,0); }
+}
+
+.eco-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-accent-primary-light);
+  animation: eco-pulse 2s ease-in-out infinite;
+}
+
+/* ── Subtle card glow animation ── */
+@keyframes card-glow {
+  0%, 100% { box-shadow: 0 0 12px rgba(22,163,74,0.08); }
+  50%       { box-shadow: 0 0 24px rgba(34,197,94,0.16); }
+}
+
+.card-glow-anim {
+  animation: card-glow 3.5s ease-in-out infinite;
+}
+
+/* ── Progress bar ── */
+.progress-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-accent-dark), var(--color-accent-primary-light));
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px rgba(34,197,94,0.35);
+}
